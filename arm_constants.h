@@ -34,43 +34,43 @@ Contact: Guillaume.Huard@imag.fr
 #define SYS 0x1f
 
 /* Registers */
-#define R0		0
-#define R1		1
-#define R2		2
-#define R3		3
-#define R4		4
-#define R5		5
-#define R6		6
-#define R7		7
-#define R8		8
-#define R9		9
-#define R10		10
-#define R11		11
-#define R12		12
-#define SR		13		//R13
-#define LR		14		//R14		
-#define PC		15		//R15
-#define R13_SVC		16
-#define R14_SVC		17
-#define R13_ABT		18
-#define R14_ABT		19
-#define R13_UND		20
-#define R14_UND		21
-#define R13_IRQ		22
-#define R14_IRQ		23
-#define R8_FIQ		24
-#define R9_FIQ		25
-#define R10_FIQ		26
-#define R11_FIQ		27
-#define R12_FIQ		28
-#define R13_FIQ		29
-#define R14_FIQ		30
-#define CPSR		31
-#define SPSR_SVC	32
-#define SPSR_ABT	33
-#define SPSR_UND	34
-#define SPSR_IRQ	35
-#define SPSR_FIQ	36
+// #define R0		0
+// #define R1		1
+// #define R2		2
+// #define R3		3
+// #define R4		4
+// #define R5		5
+// #define R6		6
+// #define R7		7
+// #define R8		8
+// #define R9		9
+// #define R10		10
+// #define R11		11
+// #define R12		12
+// #define SR		13		//R13
+// #define LR		14		//R14		
+// #define PC		15		//R15
+// #define R13_SVC		16
+// #define R14_SVC		17
+// #define R13_ABT		18
+// #define R14_ABT		19
+// #define R13_UND		20
+// #define R14_UND		21
+// #define R13_IRQ		22
+// #define R14_IRQ		23
+// #define R8_FIQ		24
+// #define R9_FIQ		25
+// #define R10_FIQ		26
+// #define R11_FIQ		27
+// #define R12_FIQ		28
+// #define R13_FIQ		29
+// #define R14_FIQ		30
+// #define CPSR		31
+// #define SPSR_SVC	32
+// #define SPSR_ABT	33
+// #define SPSR_UND	34
+// #define SPSR_IRQ	35
+// #define SPSR_FIQ	36
 /* ARM Exceptions (by priority) */
 #define RESET                   1
 #define DATA_ABORT              2

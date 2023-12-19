@@ -21,157 +21,198 @@ Contact: Guillaume.Huard@imag.fr
 	 38401 Saint Martin d'H�res
 */
 #include <stdlib.h>
+
+#include <stdio.h>
+
 #include "memory.h"
+
 #include "util.h"
 
 struct memory_data {
-    int size; //le nombre d'octets qu'on peut avoir dans la memoire
+  int size; //le nombre d'octets qu'on peut avoir dans la memoire
 
-    uint8_t* memory_array; //tableau des data(octets)
+  uint8_t * memory_array; //tableau des data(octets)
 };
 
 memory memory_create(size_t size) {
-    memory mem = malloc(sizeof(struct memory_data));
-    if(mem){
-        mem->size=size;
-        mem->memory_array=malloc(sizeof(uint8_t)*size);
-        if(mem->memory_array){
-            return mem;
-        }
-        free(mem);
+  memory mem = malloc(sizeof(struct memory_data));
+  if (mem) {
+    mem -> size = size;
+    mem -> memory_array = malloc(sizeof(uint8_t) * size);
+    if (mem -> memory_array) {
+      return mem;
     }
-    return NULL;
+    free(mem);
+  }
+  return NULL;
 }
 
 size_t memory_get_size(memory mem) {
-    if(mem){
-        return mem->size;
-    }
-    return -1;
+  if (mem) {
+    return mem -> size;
+  }
+  return -1;
 }
 
 void memory_destroy(memory mem) {
-    if(mem){
-        free(mem->memory_array);
-        free(mem);
-    }
+  if (mem) {
+    free(mem -> memory_array);
+    free(mem);
+  }
 }
 
-int memory_read_byte(memory mem, uint32_t address, uint8_t *value) {
-    if(mem){
-        if(address<mem->size){
-            *value = *(mem->memory_array+address);
-            return 0; 
+int memory_read_byte(memory mem, uint32_t address, uint8_t * value) {
+  if (mem) {
+    if (address < mem -> size) {
+      * value = * (mem -> memory_array + address);
+      return 0;
+    }
+  }
+  return -1;
+}
+
+int memory_read_half(memory mem, uint32_t address, uint16_t * value, uint8_t be) {
+  if (mem) {
+    if (address < mem -> size) {
+      uint8_t bytearray[2];
+      for (size_t i = 0; i < 2; i++) {
+        memory_read_byte(mem, address + i, & (bytearray[i]));
+      }
+      if (!is_big_endian()) {
+        if (be) {
+          for (size_t i = 0; i < 2; i++) {
+            *((uint8_t * ) value + i) = bytearray[1 - i];
+          }
+        } else {
+          for (size_t i = 0; i < 2; i++) {
+            *((uint8_t * ) value + i) = bytearray[i];
+          }
         }
-
+      } else {
+        if (!be) {
+          for (size_t i = 0; i < 2; i++) {
+            *((uint8_t * ) value + i) = bytearray[1 - i];
+          }
+        } else {
+          for (size_t i = 0; i < 2; i++) {
+            *((uint8_t * ) value + i) = bytearray[i];
+          }
+        }
+      }
     }
-    return -1;
+  }
+  return -1;
 }
 
-int memory_read_half(memory mem, uint32_t address, uint16_t *value, uint8_t be) {
-        if(mem){
-            if(address<mem->size){
-                uint8_t b1,b2;
-                memory_read_byte(mem, address, &b1);
-                memory_read_byte(mem, address + sizeof(uint8_t), &b2);
-                if (be){
-                    value[0]=b2;
-                    value[1]=b1;
-                }
-                else{
-                    uint8_t* val = malloc(sizeof(uint8_t)*2);
-                    *(val)=b1;
-                    *(val+1)=b2;
-                    *value = *val;
-                }
-                return 0; 
-            }
+int memory_read_word(memory mem, uint32_t address, uint32_t * value, uint8_t be) {
+  if (mem) {
+    if (address < mem -> size) {
+      uint8_t bytearray[4];
+      for (size_t i = 0; i < 4; i++) {
+        memory_read_byte(mem, address + i, & (bytearray[i]));
+      }
+      if (!is_big_endian()) {
+        if (be) {
+          for (size_t i = 0; i < 4; i++) {
+            *((uint8_t * ) value + i) = bytearray[3 - i];
+          }
+        } else {
+          for (size_t i = 0; i < 4; i++) {
+            *((uint8_t * ) value + i) = bytearray[i];
+          }
 
+        }
+      } else {
+        if (!be) {
+          for (size_t i = 0; i < 4; i++) {
+            *((uint8_t * ) value + i) = bytearray[3 - i];
+          }
+        } else {
+          for (size_t i = 0; i < 4; i++) {
+            *((uint8_t * ) value + i) = bytearray[i];
+          }
+        }
+      }
     }
-    return -1;
+  }
+  return -1;
 }
-
-int memory_read_word(memory mem, uint32_t address, uint32_t *value, uint8_t be) {
-            if(mem){
-                if(address<mem->size){
-                    uint8_t b1,b2,b3,b4;
-                    memory_read_byte(mem, address, &b1);
-                    memory_read_byte(mem, address + sizeof(uint8_t), &b2);
-                    memory_read_byte(mem, address + sizeof(uint8_t)*2, &b3);
-                    memory_read_byte(mem, address + sizeof(uint8_t)*3, &b4);
-                    if(be){
-                        value[0]=b4;
-                        value[1]=b3;
-                        value[2]=b2;
-                        value[3]=b1;
-                    }
-                    else{
-                        uint8_t* val = malloc(sizeof(uint8_t)*4);
-                        *(val)=b1;
-                        *(val+1)=b2;
-                        *(val+2)=b3;
-                        *(val+3)=b4;
-                        *value = *val;
-                    }
-                    return 0;
-                }
-            }
-    return -1;
-}
-
 
 int memory_write_byte(memory mem, uint32_t address, uint8_t value) {
-    if(mem){
-        if(address<mem->size){
-            *(mem->memory_array+address)=value;
-            return 0; 
-        }
-
+  if (mem) {
+    if (address < mem -> size) {
+      *(mem -> memory_array + address) = value;
+      return 0;
     }
-    return -1;
+
+  }
+  return -1;
 }
 
 int memory_write_half(memory mem, uint32_t address, uint16_t value, uint8_t be) {
-        if(mem){
-        if(address<mem->size){
-            uint8_t b1 = *(&value);
-            uint8_t b2 = *(&value+1);
-            if(be){
-                memory_write_byte(mem,address,b2);
-                memory_write_byte(mem,address + sizeof(uint8_t),b1);
-            }
-            else{
-                memory_write_byte(mem,address,b1);
-                memory_write_byte(mem,address + sizeof(uint8_t),b2);
-            }
-            return 0;
+  if (mem) {
+    if (address < mem -> size) {
+      uint8_t bytearray[2];
+      for (size_t i = 0; i < 2; i++) {
+        bytearray[i] = * ((uint8_t * ) & value + i);
+      }
+      if (!is_big_endian()) {
+        if (be) {
+          for (size_t i = 0; i < 2; i++) {
+            memory_write_byte(mem, address + i, bytearray[1 - i]);
+          }
+        } else {
+          for (size_t i = 0; i < 2; i++) {
+            memory_write_byte(mem, address + i, bytearray[i]);
+          }
         }
-
+      } else {
+        if (!be) {
+          for (size_t i = 0; i < 2; i++) {
+            memory_write_byte(mem, address + i, bytearray[i]);
+          }
+        } else {
+          for (size_t i = 0; i < 2; i++) {
+            memory_write_byte(mem, address + i, bytearray[1 - i]);
+          }
+        }
+      }
+      return 0;
     }
-    return -1;
+  }
+  return -1;
 }
 
 int memory_write_word(memory mem, uint32_t address, uint32_t value, uint8_t be) {
-        if(mem){
-            if(address<mem->size){
-                uint8_t b1 = *(&value);
-                uint8_t b2 = *(&value+1);
-                uint8_t b3 = *(&value+2);
-                uint8_t b4 = *(&value+3);
-                if(be){
-                    memory_write_byte(mem,address,b4);
-                    memory_write_byte(mem,address + sizeof(uint8_t),b3);
-                    memory_write_byte(mem,address + sizeof(uint8_t)*2,b2);
-                    memory_write_byte(mem,address + sizeof(uint8_t)*3,b1);
-                }
-                else{
-                    memory_write_byte(mem,address,b1);
-                    memory_write_byte(mem,address + sizeof(uint8_t),b2);
-                    memory_write_byte(mem,address + sizeof(uint8_t)*2,b3);
-                    memory_write_byte(mem,address + sizeof(uint8_t)*3,b4);
-                }
-            }
-            return 0;
+  if (mem) {
+    if (address < mem -> size) {
+      uint8_t bytearray[4];
+      for (size_t i = 0; i < 4; i++) {
+        bytearray[i] = * ((uint8_t * ) & value + i);
+      }
+      if (!is_big_endian()) {
+        if (be) {
+          for (size_t i = 0; i < 4; i++) {
+            memory_write_byte(mem, address + i, bytearray[3 - i]);
+          }
+        } else {
+          for (size_t i = 0; i < 4; i++) {
+            memory_write_byte(mem, address + i, bytearray[i]);
+          }
         }
-    return -1;
+      } else {
+        if (!be) {
+          for (size_t i = 0; i < 4; i++) {
+            memory_write_byte(mem, address + i, bytearray[i]);
+          }
+        } else {
+          for (size_t i = 0; i < 4; i++) {
+            memory_write_byte(mem, address + i, bytearray[3 - i]);
+          }
+        }
+      }
+      return 0;
+    }
+  }
+  return -1;
 }

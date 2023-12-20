@@ -149,7 +149,7 @@ void registers_write(registers r, uint8_t reg, uint8_t mode, uint32_t value) {
         }else{
             r[reg].reg_data = value;
         }
-    }else if(r<15){
+    }else if(reg<15){
         switch(mode){
             //17 fiq
             case 0b10001:

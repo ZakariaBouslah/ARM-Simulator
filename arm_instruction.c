@@ -72,6 +72,48 @@ int arm_condition(arm_core p ,uint32_t ins){
 }
 
 static int arm_execute_instruction(arm_core p) {
+    uint32_t ins;
+    uint8_t instype;
+    instype = get_bits(ins,27,25);
+    
+    int bit_24 = get_bit(ins,24);
+    int bit_23 = get_bit(ins,23);
+    int bit_21 = get_bit(ins,21);
+    int bit_20 = get_bit(ins,20);
+    int bit_7 = get_bit(ins,7);
+    int bit_4 = get_bit(ins,4);
+
+    int res = arm_fetch(p,&ins);
+
+    if(res != 0){
+        return -1;
+    }
+    if(arm_condition){
+        switch (instype){
+            case 0:
+                if(bit_24 == 1 && bit_23 == 0 && bit_20 == 0 ){//MSR et MRS
+                    return arm_miscellaneous(p,ins);
+                }else if(bit_7 == 1 && bit_4 == 1){//Multiplies/Extra load/stores
+                    return arm_load_store(p,ins);
+                }else{//bit7=0 bit4 = 1  data processing register shift
+                    return arm_data_processing_shift(p,ins);
+                }
+            case 1:
+                return arm_data_processing_immediate_msr(p,ins);
+            case 2:
+                return arm_load_store(p,ins);
+            case 3:
+                return arm_load_store(p,ins);
+            case 4:
+                return arm_load_store_multiple(p,ins);
+            case 5:
+                return arm_branch(p,ins);
+            case 6:
+                return arm_coprocessor_load_store(p,ins);
+            case 7:
+                return arm_coprocessor_others_swi(p,ins);
+        }
+    }
     return 0;
 }
 

@@ -88,9 +88,9 @@ static int arm_execute_instruction(arm_core p) {
     if(res != 0){
         return -1;
     }
-    if(arm_condition){
+    if(arm_condition(p, ins)){
         switch (instype){
-            case 0:
+            case 0: //Data processing  OR  MSR
                 if(bit_24 == 1 && bit_23 == 0 && bit_20 == 0 ){//MSR et MRS
                     return arm_miscellaneous(p,ins);
                 }else if(bit_7 == 1 && bit_4 == 1){//Multiplies/Extra load/stores

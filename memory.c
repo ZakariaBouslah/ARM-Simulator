@@ -78,27 +78,17 @@ int memory_read_half(memory mem, uint32_t address, uint16_t * value, uint8_t be)
       for (size_t i = 0; i < 2; i++) {
         memory_read_byte(mem, address + i, & (bytearray[i]));
       }
-      if (!is_big_endian()) {
-        if (be) {
-          for (size_t i = 0; i < 2; i++) {
-            *((uint8_t * ) value + i) = bytearray[1 - i];
-          }
-        } else {
-          for (size_t i = 0; i < 2; i++) {
-            *((uint8_t * ) value + i) = bytearray[i];
-          }
-        }
-      } else {
-        if (!be) {
-          for (size_t i = 0; i < 2; i++) {
-            *((uint8_t * ) value + i) = bytearray[1 - i];
-          }
-        } else {
-          for (size_t i = 0; i < 2; i++) {
-            *((uint8_t * ) value + i) = bytearray[i];
-          }
+      if ((!is_big_endian() && be) || (is_big_endian() && !be)) {
+        for (size_t i = 0; i < 2; i++) {
+          *((uint8_t * ) value + i) = bytearray[1 - i];
         }
       }
+      else {
+          for (size_t i = 0; i < 2; i++) {
+            *((uint8_t * ) value + i) = bytearray[i];
+          }
+        }
+      return 0;
     }
   }
   return -1;
@@ -111,28 +101,17 @@ int memory_read_word(memory mem, uint32_t address, uint32_t * value, uint8_t be)
       for (size_t i = 0; i < 4; i++) {
         memory_read_byte(mem, address + i, & (bytearray[i]));
       }
-      if (!is_big_endian()) {
-        if (be) {
-          for (size_t i = 0; i < 4; i++) {
-            *((uint8_t * ) value + i) = bytearray[3 - i];
-          }
-        } else {
-          for (size_t i = 0; i < 4; i++) {
-            *((uint8_t * ) value + i) = bytearray[i];
-          }
-
-        }
-      } else {
-        if (!be) {
-          for (size_t i = 0; i < 4; i++) {
-            *((uint8_t * ) value + i) = bytearray[3 - i];
-          }
-        } else {
-          for (size_t i = 0; i < 4; i++) {
-            *((uint8_t * ) value + i) = bytearray[i];
-          }
+      if ((!is_big_endian() && be) || (is_big_endian() && !be)) {
+        for (size_t i = 0; i < 4; i++) {
+          *((uint8_t * ) value + i) = bytearray[3 - i];
         }
       }
+      else {
+          for (size_t i = 0; i < 4; i++) {
+            *((uint8_t * ) value + i) = bytearray[i];
+          }
+        }
+      return 0;
     }
   }
   return -1;
@@ -144,7 +123,6 @@ int memory_write_byte(memory mem, uint32_t address, uint8_t value) {
       *(mem -> memory_array + address) = value;
       return 0;
     }
-
   }
   return -1;
 }
@@ -156,27 +134,16 @@ int memory_write_half(memory mem, uint32_t address, uint16_t value, uint8_t be) 
       for (size_t i = 0; i < 2; i++) {
         bytearray[i] = * ((uint8_t * ) & value + i);
       }
-      if (!is_big_endian()) {
-        if (be) {
-          for (size_t i = 0; i < 2; i++) {
-            memory_write_byte(mem, address + i, bytearray[1 - i]);
-          }
-        } else {
-          for (size_t i = 0; i < 2; i++) {
-            memory_write_byte(mem, address + i, bytearray[i]);
-          }
+      if ((!is_big_endian() && be) || (is_big_endian() && !be)) {   
+        for (size_t i = 0; i < 2; i++) {
+          memory_write_byte(mem, address + i, bytearray[1 - i]);
         }
-      } else {
-        if (!be) {
-          for (size_t i = 0; i < 2; i++) {
-            memory_write_byte(mem, address + i, bytearray[i]);
-          }
-        } else {
-          for (size_t i = 0; i < 2; i++) {
-            memory_write_byte(mem, address + i, bytearray[1 - i]);
-          }
         }
-      }
+      else {
+        for (size_t i = 0; i < 2; i++) {
+          memory_write_byte(mem, address + i, bytearray[i]);
+        }
+      }   
       return 0;
     }
   }
@@ -190,25 +157,14 @@ int memory_write_word(memory mem, uint32_t address, uint32_t value, uint8_t be) 
       for (size_t i = 0; i < 4; i++) {
         bytearray[i] = * ((uint8_t * ) & value + i);
       }
-      if (!is_big_endian()) {
-        if (be) {
-          for (size_t i = 0; i < 4; i++) {
-            memory_write_byte(mem, address + i, bytearray[3 - i]);
-          }
-        } else {
-          for (size_t i = 0; i < 4; i++) {
-            memory_write_byte(mem, address + i, bytearray[i]);
-          }
+      if ((!is_big_endian() && be) || (is_big_endian() && !be)) {   
+        for (size_t i = 0; i < 4; i++) {
+          memory_write_byte(mem, address + i, bytearray[3 - i]);
         }
-      } else {
-        if (!be) {
-          for (size_t i = 0; i < 4; i++) {
-            memory_write_byte(mem, address + i, bytearray[i]);
-          }
-        } else {
-          for (size_t i = 0; i < 4; i++) {
-            memory_write_byte(mem, address + i, bytearray[3 - i]);
-          }
+        }
+      else {
+        for (size_t i = 0; i < 4; i++) {
+          memory_write_byte(mem, address + i, bytearray[i]);
         }
       }
       return 0;

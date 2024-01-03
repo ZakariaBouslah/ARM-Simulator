@@ -26,9 +26,16 @@ Contact: Guillaume.Huard@imag.fr
 #include <debug.h>
 #include <stdlib.h>
 
-
 int arm_branch(arm_core p, uint32_t ins) {
-    return UNDEFINED_INSTRUCTION;
+    //WARNING : NOT TESTED YET
+    uint32_t PC = arm_read_register(p,15);
+    if (get_bit(ins, 24)){ // checking if we have to store a return address
+        arm_write_register(p, 14, PC);
+    }
+    /*TODO: Comprendre la fonction SIGN_EXTEND_30 utilisée sur la doc, et voir s'il
+            faut impérativement l'implémenter*/
+    PC = PC  +  (uint32_t)(get_bits(ins,23,0) << 2);
+    return 0;
 }
 
 int arm_coprocessor_others_swi(arm_core p, uint32_t ins) {

@@ -27,10 +27,7 @@ Contact: Guillaume.Huard@imag.fr
 #include "util.h"
 #include "debug.h"
 #include <math.h>
-typedef struct {
-    uint8_t shifter_carry_out;
-    uint8_t shifter_operand;
-} shifter_values;
+#include <stdlib.h>
 
 int carryFrom(uint32_t a, uint32_t b, uint32_t c){
 	return((a+b+c) > pow(2,32)-1);
@@ -78,7 +75,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 		arm_write_register(p,Rd_num,(uint32_t) Rn_value & MyShifterValue->shifter_operand);
 		Rd_value = arm_read_register(p,Rd_num);
 		if (S==1 && Rd_num==15){
-			if(arm_current_mode_has_spsr(p)){arm_write_cpsr(p,arm_read_spsr);}else{return UNDEFINED_INSTRUCTION;}
+			if(arm_current_mode_has_spsr(p)){arm_write_cpsr(p,(uint32_t)arm_read_spsr(p));}else{return UNDEFINED_INSTRUCTION;}
 		}
 		else if(S==1){
 			uint32_t cpsr_val = arm_read_cpsr(p);
@@ -94,22 +91,22 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 		break;
 
 	case 1: //0001 EOR
-		instruction_EOR (p,ins);
+		//instruction_EOR (p,ins);
 		break;
 	
 	case 2: //0010 SUB
-		instruction_SUB (p,ins);
+		//instruction_SUB (p,ins);
 		break;
 
 	case 3: //0011 RSB
-		instruction_RSB (p,ins);
+		//instruction_RSB (p,ins);
 		break;
 	
 	case 0b0100: //ADD (page A4-6) opcode: 0100
 		arm_write_register(p,Rd_num,(uint32_t) (Rn_value+MyShifterValue->shifter_operand));
 		Rd_value = arm_read_register(p,Rd_num);
 		if (S==1 && Rd_num==15){
-			if(arm_current_mode_has_spsr(p)){arm_write_cpsr(p,arm_read_spsr);}else{return UNDEFINED_INSTRUCTION;}
+			if(arm_current_mode_has_spsr(p)){arm_write_cpsr(p,(uint32_t)arm_read_spsr(p));}else{return UNDEFINED_INSTRUCTION;}
 		}
 		else if(S==1){
 			uint32_t cpsr_val = arm_read_cpsr(p);
@@ -129,7 +126,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 		arm_write_register(p,Rd_num,(uint32_t) (Rn_value+MyShifterValue->shifter_operand+(uint32_t)FLAG_c));
 		Rd_value = arm_read_register(p,Rd_num);
 		if (S==1 && Rd_num==15){
-			if(arm_current_mode_has_spsr(p)){arm_write_cpsr(p,arm_read_spsr);}else{return UNDEFINED_INSTRUCTION;}
+			if(arm_current_mode_has_spsr(p)){arm_write_cpsr(p,(uint32_t)arm_read_spsr(p));}else{return UNDEFINED_INSTRUCTION;}
 		}
 		else if(S==1){
 			uint32_t cpsr_val = arm_read_cpsr(p);
@@ -146,34 +143,34 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 		break;
 
 	case 6: //0110 SBC
-		instruction_SBC (p,ins);
+		//instruction_SBC (p,ins);
 		break;
 	
 	case 7: //0111 RSC
-		instruction_RSC (p,ins);
+		//instruction_RSC (p,ins);
 		break;
 
 	case 8: //1000 TST
-		instruction_TST (p,ins);
+		//instruction_TST (p,ins);
 		break;
 
 	case 9: //1001 TEQ
-		instruction_TEQ (p,ins);
+		//instruction_TEQ (p,ins);
 		break;
 
 	case 10: //1010 CMP I
-		instruction_CMP (p,ins);
+		//instruction_CMP (p,ins);
 		break;
 
 	case 11: //1011 CMN I
-		instruction_CMN (p,ins);
+		//instruction_CMN (p,ins);
 		break;
 	
 	case 0b1100: //1100 ORR
 		arm_write_register(p,Rd_num,(uint32_t) Rn_value | MyShifterValue->shifter_operand);
 		Rd_value = arm_read_register(p,Rd_num);
 		if (S==1 && Rd_num==15){
-			if(arm_current_mode_has_spsr(p)){arm_write_cpsr(p,arm_read_spsr);}else{return UNDEFINED_INSTRUCTION;}
+			if(arm_current_mode_has_spsr(p)){arm_write_cpsr(p,(uint32_t)arm_read_spsr(p));}else{return UNDEFINED_INSTRUCTION;}
 		}
 		else if(S==1){
 			uint32_t cpsr_val = arm_read_cpsr(p);
@@ -192,7 +189,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 		arm_write_register(p,Rd_num,(uint32_t) MyShifterValue->shifter_operand);
 		Rd_value = arm_read_register(p,Rd_num);
 		if (S==1 && Rd_num==15){
-			if(arm_current_mode_has_spsr(p)){arm_write_cpsr(p,arm_read_spsr);}else{return UNDEFINED_INSTRUCTION;}
+			if(arm_current_mode_has_spsr(p)){arm_write_cpsr(p,(uint32_t)arm_read_spsr(p));}else{return UNDEFINED_INSTRUCTION;}
 		}
 		else if(S==1){
 			uint32_t cpsr_val = arm_read_cpsr(p);
@@ -211,7 +208,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 		arm_write_register(p,Rd_num,(uint32_t) Rn_value & ~(MyShifterValue->shifter_operand));
 		Rd_value = arm_read_register(p,Rd_num);
 		if (S==1 && Rd_num==15){
-			if(arm_current_mode_has_spsr(p)){arm_write_cpsr(p,arm_read_spsr);}else{return UNDEFINED_INSTRUCTION;}
+			if(arm_current_mode_has_spsr(p)){arm_write_cpsr(p,(uint32_t)arm_read_spsr(p));}else{return UNDEFINED_INSTRUCTION;}
 		}
 		else if(S==1){
 			uint32_t cpsr_val = arm_read_cpsr(p);
@@ -231,7 +228,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 		arm_write_register(p,Rd_num,(uint32_t) ~(MyShifterValue->shifter_operand));
 		Rd_value = arm_read_register(p,Rd_num);
 		if (S==1 && Rd_num==15){
-			if(arm_current_mode_has_spsr(p)){arm_write_cpsr(p,arm_read_spsr);}else{return UNDEFINED_INSTRUCTION;}
+			if(arm_current_mode_has_spsr(p)){arm_write_cpsr(p,(uint32_t)arm_read_spsr(p));}else{return UNDEFINED_INSTRUCTION;}
 		}
 		else if(S==1){
 			uint32_t cpsr_val = arm_read_cpsr(p);
@@ -316,7 +313,7 @@ shifter_values* shifter_values_calculator(arm_core p,uint32_t ins, uint8_t FLAG_
 						MyShifterValue->shifter_carry_out = get_bit(Rm,31);
 					}
 					else{
-						MyShifterValue->shifter_operand = 0xFFFFFFFF;
+						MyShifterValue->shifter_operand = (uint8_t)0xFFFFFFFF;
 						MyShifterValue->shifter_carry_out = get_bit(Rm,31);
 					}
 				}
@@ -355,10 +352,11 @@ shifter_values* shifter_values_calculator(arm_core p,uint32_t ins, uint8_t FLAG_
 		else{
 			uint32_t Rm = arm_read_register(p,(uint8_t)get_bits(ins,3,0));
 			uint32_t Rs = arm_read_register(p,(uint8_t)get_bits(ins,11,8));
+			uint16_t Rs7_0 = get_bits(Rs,7,0);
 			switch (get_bits(ins,7,4)){
 			//Data-processing operands - Logical shift left by register Syntax: <Rm>, LSL <Rs> (page A5-10)
 			case 0b0001:
-				uint16_t Rs7_0 = get_bits(Rs,7,0);
+				
 				if(Rs7_0 ==0){
 					MyShifterValue->shifter_operand = Rm;
 					MyShifterValue->shifter_carry_out = FLAG_c;
@@ -379,7 +377,6 @@ shifter_values* shifter_values_calculator(arm_core p,uint32_t ins, uint8_t FLAG_
 				break;
 			//Data-processing operands - Logical shift right by register Syntax: <Rm>, LSR <Rs> (page A5-12)
 			case 0b0011:
-				uint16_t Rs7_0 = get_bits(Rs,7,0);
 				if(Rs7_0 ==0){
 					MyShifterValue->shifter_operand = Rm;
 					MyShifterValue->shifter_carry_out = FLAG_c;
@@ -401,7 +398,6 @@ shifter_values* shifter_values_calculator(arm_core p,uint32_t ins, uint8_t FLAG_
 
 			// Data-processing operands - Arithmetic shift right by register Syntax: <Rm>, ASR <Rs> (page A5-14)
 			case 0b0101:
-				uint16_t Rs7_0 = get_bits(Rs,7,0);
 				if(Rs7_0 ==0){
 					MyShifterValue->shifter_operand = Rm;
 					MyShifterValue->shifter_carry_out = FLAG_c;
@@ -416,7 +412,7 @@ shifter_values* shifter_values_calculator(arm_core p,uint32_t ins, uint8_t FLAG_
 						MyShifterValue->shifter_carry_out = (uint8_t)get_bit(Rm,31);
 					}
 					else/* Rm[31] == 1 */{
-						MyShifterValue->shifter_operand = 0xFFFFFFFF;
+						MyShifterValue->shifter_operand = (uint32_t)0xFFFFFFFF;
 						MyShifterValue->shifter_carry_out = (uint8_t)get_bit(Rm,31);
 					}
 				}
@@ -426,7 +422,6 @@ shifter_values* shifter_values_calculator(arm_core p,uint32_t ins, uint8_t FLAG_
 
 			// Data-processing operands - Rotate right by register Syntax: <Rm>, ROR <Rs> (page A5-16)
 			case 0b0111:
-				uint16_t Rs7_0 = get_bits(Rs,7,0);
 				uint8_t Rs4_0 = get_bits(Rs,4,0);
 				if(Rs7_0 ==0){
 					MyShifterValue->shifter_operand = Rm;

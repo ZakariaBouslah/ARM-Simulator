@@ -74,6 +74,7 @@ int arm_condition(arm_core p ,uint32_t ins){
 static int arm_execute_instruction(arm_core p) {
     uint32_t ins;
     uint8_t instype;
+    int res = arm_fetch(p,&ins);
     instype = get_bits(ins,27,25);
     
     int bit_24 = get_bit(ins,24);
@@ -83,7 +84,7 @@ static int arm_execute_instruction(arm_core p) {
     int bit_7 = get_bit(ins,7);
     int bit_4 = get_bit(ins,4);
 
-    int res = arm_fetch(p,&ins);
+    
 
     if(res != 0){
         return -1;

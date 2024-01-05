@@ -24,8 +24,12 @@ Contact: Guillaume.Huard@imag.fr
 #define __ARM_DATA_PROCESSING_H__
 #include <stdint.h>
 #include "arm_core.h"
-
+struct shifter_values_data{
+    uint8_t shifter_carry_out;
+    uint32_t shifter_operand;
+};
+typedef struct shifter_values_data shifter_values;
 int arm_data_processing_shift(arm_core p, uint32_t ins);
 int arm_data_processing_immediate_msr(arm_core p, uint32_t ins);
-shifter_values shifter_values_calculator(arm_core p,uint32_t ins, uint8_t FLAG_c, uint8_t bit_4);
+shifter_values* shifter_values_calculator(arm_core p,uint32_t ins, uint8_t FLAG_c, uint8_t bit_4);
 #endif

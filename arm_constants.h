@@ -1,24 +1,24 @@
 /*
-Armator - simulateur de jeu d'instruction ARMv5T à but pédagogique
+Armator - simulateur de jeu d'instruction ARMv5T Ã  but pÃ©dagogique
 Copyright (C) 2011 Guillaume Huard
 Ce programme est libre, vous pouvez le redistribuer et/ou le modifier selon les
-termes de la Licence Publique Générale GNU publiée par la Free Software
-Foundation (version 2 ou bien toute autre version ultérieure choisie par vous).
+termes de la Licence Publique GÃ©nÃ©rale GNU publiÃ©e par la Free Software
+Foundation (version 2 ou bien toute autre version ultÃ©rieure choisie par vous).
 
-Ce programme est distribué car potentiellement utile, mais SANS AUCUNE
+Ce programme est distribuÃ© car potentiellement utile, mais SANS AUCUNE
 GARANTIE, ni explicite ni implicite, y compris les garanties de
-commercialisation ou d'adaptation dans un but spécifique. Reportez-vous à la
-Licence Publique Générale GNU pour plus de détails.
+commercialisation ou d'adaptation dans un but spÃ©cifique. Reportez-vous Ã  la
+Licence Publique GÃ©nÃ©rale GNU pour plus de dÃ©tails.
 
-Vous devez avoir reçu une copie de la Licence Publique Générale GNU en même
-temps que ce programme ; si ce n'est pas le cas, écrivez à la Free Software
+Vous devez avoir reÃ§u une copie de la Licence Publique GÃ©nÃ©rale GNU en mÃªme
+temps que ce programme ; si ce n'est pas le cas, Ã©crivez Ã  la Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307,
-États-Unis.
+Ã‰tats-Unis.
 
 Contact: Guillaume.Huard@imag.fr
-	 Bâtiment IMAG
+	 BÃ¢timent IMAG
 	 700 avenue centrale, domaine universitaire
-	 38401 Saint Martin d'Hères
+	 38401 Saint Martin d'HÃ¨res
 */
 #ifndef __ARM_CONSTANTS_H__
 #define __ARM_CONSTANTS_H__
@@ -32,6 +32,19 @@ Contact: Guillaume.Huard@imag.fr
 #define ABT 0x17
 #define UND 0x1b
 #define SYS 0x1f
+
+
+/* bit */
+#define bitL(x) get_bit(x,20)
+#define bitW(x) get_bit(x,21)
+#define bitB(x) get_bit(x,22)
+#define bitU(x) get_bit(x,23)
+#define bitP(x) get_bit(x,24)
+#define bitI(x) get_bit(x,25)
+#define bits_rm(x) get_bits(x,3,0)
+#define bits_rn(x) get_bits(x,19,16)
+#define bits_rd(x) get_bits(x,15,12)
+
 
 /* ARM Exceptions (by priority) */
 #define RESET                   1

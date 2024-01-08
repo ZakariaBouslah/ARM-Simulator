@@ -31,5 +31,8 @@ struct shifter_values_data{
 typedef struct shifter_values_data shifter_values;
 int arm_data_processing_shift(arm_core p, uint32_t ins);
 int arm_data_processing_immediate_msr(arm_core p, uint32_t ins);
-shifter_values* shifter_values_calculator(arm_core p,uint32_t ins, uint8_t FLAG_c, uint8_t bit_4);
+shifter_values* shifter_values_calculator(arm_core p,uint32_t ins,uint8_t FLAG_c);
+int carryFrom(uint32_t a, uint32_t b, uint32_t c);
+int BorrowFrom(uint32_t op1, uint32_t op2);
+int OverflowFrom(uint32_t Rd,uint32_t Rn, uint32_t shifter_operand);
 #endif

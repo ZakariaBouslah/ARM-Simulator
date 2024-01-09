@@ -192,7 +192,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 		break;
 
 	case 0b0110: //SBC (page A4-125) opcode: 0110
-		arm_write_register(p,Rd_num,(uint32_t) Rn_value - MyShifterValue->shifter_operand - (uint32_t)~FLAG_c);
+		arm_write_register(p,Rd_num,(uint32_t) Rn_value - MyShifterValue->shifter_operand - (uint32_t)(1-FLAG_c));
 		Rd_value = arm_read_register(p,Rd_num);
 		if (S==1 && Rd_num==15){
 			if(arm_current_mode_has_spsr(p)){arm_write_cpsr(p,(uint32_t)arm_read_spsr(p));}else{return UNDEFINED_INSTRUCTION;}
@@ -214,7 +214,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 
 	
 	case 0b0111: //RSC (page A4-117) opcode:0111
-		arm_write_register(p,Rd_num, MyShifterValue->shifter_operand - (uint32_t) Rn_value - (uint32_t)~FLAG_c );
+		arm_write_register(p,Rd_num, MyShifterValue->shifter_operand - (uint32_t) Rn_value - (uint32_t)(1-FLAG_c) );
 		Rd_value = arm_read_register(p,Rd_num);
 		if (S==1 && Rd_num==15){
 			if(arm_current_mode_has_spsr(p)){arm_write_cpsr(p,(uint32_t)arm_read_spsr(p));}else{return UNDEFINED_INSTRUCTION;}
@@ -425,7 +425,7 @@ int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
 	uint8_t S = 0;
 	S = (uint8_t)get_bit(ins,20);
 
-	
+	uint32_t alu_out;
 
 	//Specifies the operation of the instruction.
 	uint8_t opcode = (uint8_t)get_bits(ins,24,21);
@@ -562,7 +562,7 @@ int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
 		break;
 
 	case 0b0110: //SBC (page A4-125) opcode: 0110
-		arm_write_register(p,Rd_num,(uint32_t) Rn_value - shifter_operand - (uint32_t)~FLAG_c);
+		arm_write_register(p,Rd_num,(uint32_t) Rn_value - shifter_operand - (uint32_t)(1-FLAG_c));
 		Rd_value = arm_read_register(p,Rd_num);
 		if (S==1 && Rd_num==15){
 			if(arm_current_mode_has_spsr(p)){arm_write_cpsr(p,(uint32_t)arm_read_spsr(p));}else{return UNDEFINED_INSTRUCTION;}
@@ -584,7 +584,7 @@ int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
 
 	
 	case 0b0111: //RSC (page A4-117) opcode:0111
-		arm_write_register(p,Rd_num, shifter_operand - (uint32_t) Rn_value - (uint32_t)~FLAG_c );
+		arm_write_register(p,Rd_num, shifter_operand - (uint32_t) Rn_value - (uint32_t)(1-FLAG_c) );
 		Rd_value = arm_read_register(p,Rd_num);
 		if (S==1 && Rd_num==15){
 			if(arm_current_mode_has_spsr(p)){arm_write_cpsr(p,(uint32_t)arm_read_spsr(p));}else{return UNDEFINED_INSTRUCTION;}
@@ -604,7 +604,70 @@ int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
 		return 0;
 		break;
 
-	
+	case 0b1000 : //TST (page A4-230) opcode:1000
+		alu_out = Rn_value & shifter_operand;
+		/*N FLAG = alu_out[31]*/
+		if (get_bit(alu_out,31)==1){cpsr_val = set_bit(cpsr_val,31); } else{  cpsr_val = clr_bit(cpsr_val,31);}
+		/*Z Flag = if alu_out == 0 then 1 else 0*/
+		if (alu_out ==0) {cpsr_val = set_bit(cpsr_val,30);} else{  cpsr_val = clr_bit(cpsr_val,30);}
+		/*C flag shifter_carry_out*/	
+		if (shifter_carry_out){cpsr_val = set_bit(cpsr_val,29);}else{  cpsr_val = clr_bit(cpsr_val,29);}
+		/*V FLAG unaffected*/
+		arm_write_cpsr(p,cpsr_val);
+
+		
+		return 0;
+		break;
+
+	case 9: //1001 TEQ
+		alu_out = Rn_value ^ shifter_operand;
+		
+		/*N FLAG = alu_out[31]*/
+		if (get_bit(alu_out,31)==1){cpsr_val = set_bit(cpsr_val,31); } else{  cpsr_val = clr_bit(cpsr_val,31);}
+		/*Z Flag = if alu_out == 0 then 1 else 0*/
+		if (alu_out ==0) {cpsr_val = set_bit(cpsr_val,30);} else{  cpsr_val = clr_bit(cpsr_val,30);}
+		/*C flag shifter_carry_out*/	
+		if (shifter_carry_out){cpsr_val = set_bit(cpsr_val,29);}else{  cpsr_val = clr_bit(cpsr_val,29);}
+		/*V FLAG unaffected*/
+		arm_write_cpsr(p,cpsr_val);
+
+		
+		return 0;
+		break;
+
+	case 0b1010: //CMP (page:A4-28) opcode:1010
+		alu_out = Rn_value - shifter_operand;
+
+		/*N FLAG = alu_out[31]*/
+		if (get_bit(alu_out,31)==1){cpsr_val = set_bit(cpsr_val,31); } else{  cpsr_val = clr_bit(cpsr_val,31);}
+		/*Z Flag = if alu_out == 0 then 1 else 0*/
+		if (alu_out ==0) {cpsr_val = set_bit(cpsr_val,30);} else{  cpsr_val = clr_bit(cpsr_val,30);}
+		/*C Flag = NOT BorrowFrom(Rn - shifter_operand)*/	
+		if (BorrowFrom(Rn_value,shifter_operand)){  cpsr_val = clr_bit(cpsr_val,29);}else{cpsr_val = set_bit(cpsr_val,29);}
+		/*V Flag = OverflowFrom(Rn - shifter_operand)*/
+		if(OverflowFrom(Rd_value,Rn_value,shifter_operand)){cpsr_val = set_bit(cpsr_val,28);}else{  cpsr_val = clr_bit(cpsr_val,28);}
+		arm_write_cpsr(p,cpsr_val);
+
+		
+		return 0;
+		break;
+
+	case 0b1011: //CMN (page A4-26) opcode:1011
+		alu_out = Rn_value + shifter_operand;
+		 
+		/*N FLAG = alu_out[31]*/
+		if (get_bit(alu_out,31)==1){cpsr_val = set_bit(cpsr_val,31); } else{  cpsr_val = clr_bit(cpsr_val,31);}
+		/*Z Flag = if alu_out == 0 then 1 else 0*/
+		if (alu_out ==0) {cpsr_val = set_bit(cpsr_val,30);} else{  cpsr_val = clr_bit(cpsr_val,30);}
+		/*C flag CarryFrom(Rn_value+MyShifterValue->shifter_operand+(uint32_t)FLAG_c))*/	
+		if (carryFrom(Rn_value,shifter_operand,(uint32_t)0)){cpsr_val = set_bit(cpsr_val,29);}else{  cpsr_val = clr_bit(cpsr_val,29);}
+		/*V FLAG OverflowFrom(Rn_value+MyShifterValue->shifter_operand+(uint32_t)FLAG_c))*/
+		if(OverflowFrom(Rd_value,Rn_value,shifter_operand)){cpsr_val = set_bit(cpsr_val,28);}else{  cpsr_val = clr_bit(cpsr_val,28);}
+		arm_write_cpsr(p,cpsr_val);
+
+		
+		return 0;
+		break;
 	
 	case 0b1100: //ORR (page A4-84) opcode:1100
 		arm_write_register(p,Rd_num,(uint32_t) Rn_value | shifter_operand);

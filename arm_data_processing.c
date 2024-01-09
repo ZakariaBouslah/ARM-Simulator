@@ -72,11 +72,11 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 		else if(S==1){
 			
 			/*N FLAG = RD[31]*/
-			if (get_bit(Rd_value,31)==1){set_bit(cpsr_val,31); } else{clr_bit(cpsr_val,31);}
+			if (get_bit(Rd_value,31)==1){cpsr_val = set_bit(cpsr_val,31); } else{cpsr_val = clr_bit(cpsr_val,31);}
 			/*Z FLAG = 1 if Rd==0 */
-			if (Rd_value ==0) {set_bit(cpsr_val,30);} else{clr_bit(cpsr_val,30);}
+			if (Rd_value ==0) {cpsr_val = set_bit(cpsr_val,30);} else{cpsr_val = clr_bit(cpsr_val,30);}
 			/*C flag MyShifterValue->shifter_carry_out*/	
-			if (MyShifterValue->shifter_carry_out){set_bit(cpsr_val,29);}else{clr_bit(cpsr_val,29);}
+			if (MyShifterValue->shifter_carry_out){cpsr_val = set_bit(cpsr_val,29);}else{cpsr_val = clr_bit(cpsr_val,29);}
 			/*V FLAG unaffected*/
 			arm_write_cpsr(p,cpsr_val);
 		}
@@ -93,11 +93,11 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 		else if(S==1){
 			 
 			/*N FLAG = RD[31]*/
-			if (get_bit(Rd_value,31)==1){set_bit(cpsr_val,31); } else{clr_bit(cpsr_val,31);}
+			if (get_bit(Rd_value,31)==1){cpsr_val = set_bit(cpsr_val,31); } else{cpsr_val = clr_bit(cpsr_val,31);}
 			/*Z FLAG = 1 if Rd==0 */
-			if (Rd_value ==0) {set_bit(cpsr_val,30);} else{clr_bit(cpsr_val,30);}
+			if (Rd_value ==0) {cpsr_val = set_bit(cpsr_val,30);} else{cpsr_val = clr_bit(cpsr_val,30);}
 			/*C flag MyShifterValue->shifter_carry_out*/	
-			if (MyShifterValue->shifter_carry_out){set_bit(cpsr_val,29);}else{clr_bit(cpsr_val,29);}
+			if (MyShifterValue->shifter_carry_out){cpsr_val = set_bit(cpsr_val,29);}else{cpsr_val = clr_bit(cpsr_val,29);}
 			/*V FLAG unaffected*/
 			arm_write_cpsr(p,cpsr_val);
 		}
@@ -112,15 +112,14 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 			if(arm_current_mode_has_spsr(p)){arm_write_cpsr(p,(uint32_t)arm_read_spsr(p));}else{return UNDEFINED_INSTRUCTION;}
 		}
 		else if(S==1){
-			
 			/*N FLAG = RD[31]*/
-			if (get_bit(Rd_value,31)==1){set_bit(cpsr_val,31); } else{clr_bit(cpsr_val,31);}
+			if (get_bit(Rd_value,31)==1){cpsr_val = set_bit(cpsr_val,31); } else{cpsr_val = clr_bit(cpsr_val,31);}
 			/*Z FLAG = 1 if Rd==0 */
-			if (Rd_value ==0) {set_bit(cpsr_val,30);} else{clr_bit(cpsr_val,30);}
+			if (Rd_value ==0) {cpsr_val = set_bit(cpsr_val,30);} else{cpsr_val = clr_bit(cpsr_val,30);}
 			/*C Flag = NOT BorrowFrom(Rn - shifter_operand)*/	
-			if (BorrowFrom(Rn_value,MyShifterValue->shifter_operand)){clr_bit(cpsr_val,29);}else{set_bit(cpsr_val,29);}
+			if (BorrowFrom(Rn_value,MyShifterValue->shifter_operand)){cpsr_val = clr_bit(cpsr_val,29);}else{cpsr_val = set_bit(cpsr_val,29);}
 			/*V Flag = OverflowFrom(Rn - shifter_operand)*/
-			if(OverflowFrom(Rd_value,Rn_value,MyShifterValue->shifter_operand)){set_bit(cpsr_val,28);}else{clr_bit(cpsr_val,28);}
+			if(OverflowFrom(Rd_value,Rn_value,MyShifterValue->shifter_operand)){cpsr_val = set_bit(cpsr_val,28);}else{cpsr_val = clr_bit(cpsr_val,28);}
 			arm_write_cpsr(p,cpsr_val);
 		}
 		free(MyShifterValue);
@@ -135,13 +134,13 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 		}
 		else if(S==1){
 			/*N FLAG = RD[31]*/
-			if (get_bit(Rd_value,31)==1){set_bit(cpsr_val,31); } else{clr_bit(cpsr_val,31);}
+			if (get_bit(Rd_value,31)==1){cpsr_val = set_bit(cpsr_val,31); } else{  cpsr_val = clr_bit(cpsr_val,31);}
 			/*Z FLAG = 1 if Rd==0 */
-			if (Rd_value ==0) {set_bit(cpsr_val,30);} else{clr_bit(cpsr_val,30);}
+			if (Rd_value ==0) {cpsr_val = set_bit(cpsr_val,30);} else{  cpsr_val = clr_bit(cpsr_val,30);}
 			/*C Flag = NOT BorrowFrom(shifter_operand - Rn)*/	
-			if (BorrowFrom(MyShifterValue->shifter_operand,Rn_value)){clr_bit(cpsr_val,29);}else{set_bit(cpsr_val,29);}
+			if (BorrowFrom(MyShifterValue->shifter_operand,Rn_value)){  cpsr_val = clr_bit(cpsr_val,29);}else{cpsr_val = set_bit(cpsr_val,29);}
 			/*V Flag = OverflowFrom(shifter_operand - Rn)*/
-			if(OverflowFrom(Rd_value,MyShifterValue->shifter_operand,Rn_value)){set_bit(cpsr_val,28);}else{clr_bit(cpsr_val,28);}
+			if(OverflowFrom(Rd_value,MyShifterValue->shifter_operand,Rn_value)){cpsr_val = set_bit(cpsr_val,28);}else{  cpsr_val = clr_bit(cpsr_val,28);}
 			arm_write_cpsr(p,cpsr_val);
 		}
 		free(MyShifterValue);
@@ -157,13 +156,13 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 		}
 		else if(S==1){
 			/*N FLAG = RD[31]*/
-			if (get_bit(Rd_value,31)==1){set_bit(cpsr_val,31); } else{clr_bit(cpsr_val,31);}
+			if (get_bit(Rd_value,31)==1){cpsr_val = set_bit(cpsr_val,31); } else{  cpsr_val = clr_bit(cpsr_val,31);}
 			/*Z FLAG = 1 if Rd==0 */
-			if (Rd_value ==0) {set_bit(cpsr_val,30);} else{clr_bit(cpsr_val,30);}
+			if (Rd_value ==0) {cpsr_val = set_bit(cpsr_val,30);} else{  cpsr_val = clr_bit(cpsr_val,30);}
 			/*C flag CarryFrom(Rn_value+MyShifterValue->shifter_operand+(uint32_t)FLAG_c))*/	
-			if (carryFrom(Rn_value,MyShifterValue->shifter_operand,(uint32_t)FLAG_c)){set_bit(cpsr_val,29);}else{clr_bit(cpsr_val,29);}
+			if (carryFrom(Rn_value,MyShifterValue->shifter_operand,(uint32_t)FLAG_c)){cpsr_val = set_bit(cpsr_val,29);}else{  cpsr_val = clr_bit(cpsr_val,29);}
 			/*V FLAG OverflowFrom(Rn_value+MyShifterValue->shifter_operand+(uint32_t)FLAG_c))*/
-			if(OverflowFrom(Rd_value,Rn_value,MyShifterValue->shifter_operand)){set_bit(cpsr_val,28);}else{clr_bit(cpsr_val,28);}
+			if(OverflowFrom(Rd_value,Rn_value,MyShifterValue->shifter_operand)){cpsr_val = set_bit(cpsr_val,28);}else{  cpsr_val = clr_bit(cpsr_val,28);}
 			arm_write_cpsr(p,cpsr_val);
 		}
 		free(MyShifterValue);
@@ -179,13 +178,13 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 		}
 		else if(S==1){
 			/*N FLAG = RD[31]*/
-			if (get_bit(Rd_value,31)==1){set_bit(cpsr_val,31); } else{clr_bit(cpsr_val,31);}
+			if (get_bit(Rd_value,31)==1){cpsr_val = set_bit(cpsr_val,31); } else{  cpsr_val = clr_bit(cpsr_val,31);}
 			/*Z FLAG = 1 if Rd==0 */
-			if (Rd_value ==0) {set_bit(cpsr_val,30);} else{clr_bit(cpsr_val,30);}
+			if (Rd_value ==0) {cpsr_val = set_bit(cpsr_val,30);} else{  cpsr_val = clr_bit(cpsr_val,30);}
 			/*C flag CarryFrom(Rn_value+MyShifterValue->shifter_operand+(uint32_t)FLAG_c))*/	
-			if (carryFrom(Rn_value,MyShifterValue->shifter_operand,(uint32_t)FLAG_c)){set_bit(cpsr_val,29);}else{clr_bit(cpsr_val,29);}
+			if (carryFrom(Rn_value,MyShifterValue->shifter_operand,(uint32_t)FLAG_c)){cpsr_val = set_bit(cpsr_val,29);}else{  cpsr_val = clr_bit(cpsr_val,29);}
 			/*V FLAG OverflowFrom(Rn_value+MyShifterValue->shifter_operand+(uint32_t)FLAG_c))*/
-			if(OverflowFrom(Rd_value,Rn_value,MyShifterValue->shifter_operand)){set_bit(cpsr_val,28);}else{clr_bit(cpsr_val,28);}
+			if(OverflowFrom(Rd_value,Rn_value,MyShifterValue->shifter_operand)){cpsr_val = set_bit(cpsr_val,28);}else{  cpsr_val = clr_bit(cpsr_val,28);}
 			arm_write_cpsr(p,cpsr_val);
 		}
 		free(MyShifterValue);
@@ -200,13 +199,13 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 		}
 		else if(S==1){
 			/*N FLAG = RD[31]*/
-			if (get_bit(Rd_value,31)==1){set_bit(cpsr_val,31); } else{clr_bit(cpsr_val,31);}
+			if (get_bit(Rd_value,31)==1){cpsr_val = set_bit(cpsr_val,31); } else{  cpsr_val = clr_bit(cpsr_val,31);}
 			/*Z FLAG = 1 if Rd==0 */
-			if (Rd_value ==0) {set_bit(cpsr_val,30);} else{clr_bit(cpsr_val,30);}
+			if (Rd_value ==0) {cpsr_val = set_bit(cpsr_val,30);} else{  cpsr_val = clr_bit(cpsr_val,30);}
 			/*C Flag = NOT BorrowFrom(Rn - shifter_operand)*/	
-			if (BorrowFrom(Rn_value,MyShifterValue->shifter_operand + (uint32_t)~FLAG_c)){clr_bit(cpsr_val,29);}else{set_bit(cpsr_val,29);}
+			if (BorrowFrom(Rn_value,MyShifterValue->shifter_operand + (uint32_t)~FLAG_c)){  cpsr_val = clr_bit(cpsr_val,29);}else{cpsr_val = set_bit(cpsr_val,29);}
 			/*V Flag = OverflowFrom(Rn - shifter_operand)*/
-			if(OverflowFrom(Rd_value,Rn_value,MyShifterValue->shifter_operand + (uint32_t)~FLAG_c)){set_bit(cpsr_val,28);}else{clr_bit(cpsr_val,28);}
+			if(OverflowFrom(Rd_value,Rn_value,MyShifterValue->shifter_operand + (uint32_t)~FLAG_c)){cpsr_val = set_bit(cpsr_val,28);}else{  cpsr_val = clr_bit(cpsr_val,28);}
 			arm_write_cpsr(p,cpsr_val);
 		}
 		free(MyShifterValue);
@@ -222,13 +221,13 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 		}
 		else if(S==1){
 			/*N FLAG = RD[31]*/
-			if (get_bit(Rd_value,31)==1){set_bit(cpsr_val,31); } else{clr_bit(cpsr_val,31);}
+			if (get_bit(Rd_value,31)==1){cpsr_val = set_bit(cpsr_val,31); } else{  cpsr_val = clr_bit(cpsr_val,31);}
 			/*Z FLAG = 1 if Rd==0 */
-			if (Rd_value ==0) {set_bit(cpsr_val,30);} else{clr_bit(cpsr_val,30);}
+			if (Rd_value ==0) {cpsr_val = set_bit(cpsr_val,30);} else{  cpsr_val = clr_bit(cpsr_val,30);}
 			/*C Flag = NOT BorrowFrom(shifter_operand - Rn)*/	
-			if (BorrowFrom(MyShifterValue->shifter_operand,Rn_value+ (uint32_t)~FLAG_c)){clr_bit(cpsr_val,29);}else{set_bit(cpsr_val,29);}
+			if (BorrowFrom(MyShifterValue->shifter_operand,Rn_value+ (uint32_t)~FLAG_c)){  cpsr_val = clr_bit(cpsr_val,29);}else{cpsr_val = set_bit(cpsr_val,29);}
 			/*V Flag = OverflowFrom(shifter_operand - Rn)*/
-			if(OverflowFrom(Rd_value,MyShifterValue->shifter_operand,Rn_value + (uint32_t)~FLAG_c)){set_bit(cpsr_val,28);}else{clr_bit(cpsr_val,28);}
+			if(OverflowFrom(Rd_value,MyShifterValue->shifter_operand,Rn_value + (uint32_t)~FLAG_c)){cpsr_val = set_bit(cpsr_val,28);}else{  cpsr_val = clr_bit(cpsr_val,28);}
 			arm_write_cpsr(p,cpsr_val);
 		}
 		free(MyShifterValue);
@@ -238,11 +237,11 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 	case 0b1000 : //TST (page A4-230) opcode:1000
 		alu_out = Rn_value & MyShifterValue->shifter_operand;
 		/*N FLAG = alu_out[31]*/
-		if (get_bit(alu_out,31)==1){set_bit(cpsr_val,31); } else{clr_bit(cpsr_val,31);}
+		if (get_bit(alu_out,31)==1){cpsr_val = set_bit(cpsr_val,31); } else{  cpsr_val = clr_bit(cpsr_val,31);}
 		/*Z Flag = if alu_out == 0 then 1 else 0*/
-		if (alu_out ==0) {set_bit(cpsr_val,30);} else{clr_bit(cpsr_val,30);}
+		if (alu_out ==0) {cpsr_val = set_bit(cpsr_val,30);} else{  cpsr_val = clr_bit(cpsr_val,30);}
 		/*C flag MyShifterValue->shifter_carry_out*/	
-		if (MyShifterValue->shifter_carry_out){set_bit(cpsr_val,29);}else{clr_bit(cpsr_val,29);}
+		if (MyShifterValue->shifter_carry_out){cpsr_val = set_bit(cpsr_val,29);}else{  cpsr_val = clr_bit(cpsr_val,29);}
 		/*V FLAG unaffected*/
 		arm_write_cpsr(p,cpsr_val);
 
@@ -254,11 +253,11 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 		alu_out = Rn_value ^ MyShifterValue->shifter_operand;
 		
 		/*N FLAG = alu_out[31]*/
-		if (get_bit(alu_out,31)==1){set_bit(cpsr_val,31); } else{clr_bit(cpsr_val,31);}
+		if (get_bit(alu_out,31)==1){cpsr_val = set_bit(cpsr_val,31); } else{  cpsr_val = clr_bit(cpsr_val,31);}
 		/*Z Flag = if alu_out == 0 then 1 else 0*/
-		if (alu_out ==0) {set_bit(cpsr_val,30);} else{clr_bit(cpsr_val,30);}
+		if (alu_out ==0) {cpsr_val = set_bit(cpsr_val,30);} else{  cpsr_val = clr_bit(cpsr_val,30);}
 		/*C flag MyShifterValue->shifter_carry_out*/	
-		if (MyShifterValue->shifter_carry_out){set_bit(cpsr_val,29);}else{clr_bit(cpsr_val,29);}
+		if (MyShifterValue->shifter_carry_out){cpsr_val = set_bit(cpsr_val,29);}else{  cpsr_val = clr_bit(cpsr_val,29);}
 		/*V FLAG unaffected*/
 		arm_write_cpsr(p,cpsr_val);
 
@@ -270,13 +269,13 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 		alu_out = Rn_value - MyShifterValue->shifter_operand;
 
 		/*N FLAG = alu_out[31]*/
-		if (get_bit(alu_out,31)==1){set_bit(cpsr_val,31); } else{clr_bit(cpsr_val,31);}
+		if (get_bit(alu_out,31)==1){cpsr_val = set_bit(cpsr_val,31); } else{  cpsr_val = clr_bit(cpsr_val,31);}
 		/*Z Flag = if alu_out == 0 then 1 else 0*/
-		if (alu_out ==0) {set_bit(cpsr_val,30);} else{clr_bit(cpsr_val,30);}
+		if (alu_out ==0) {cpsr_val = set_bit(cpsr_val,30);} else{  cpsr_val = clr_bit(cpsr_val,30);}
 		/*C Flag = NOT BorrowFrom(Rn - shifter_operand)*/	
-		if (BorrowFrom(Rn_value,MyShifterValue->shifter_operand)){clr_bit(cpsr_val,29);}else{set_bit(cpsr_val,29);}
+		if (BorrowFrom(Rn_value,MyShifterValue->shifter_operand)){  cpsr_val = clr_bit(cpsr_val,29);}else{cpsr_val = set_bit(cpsr_val,29);}
 		/*V Flag = OverflowFrom(Rn - shifter_operand)*/
-		if(OverflowFrom(Rd_value,Rn_value,MyShifterValue->shifter_operand)){set_bit(cpsr_val,28);}else{clr_bit(cpsr_val,28);}
+		if(OverflowFrom(Rd_value,Rn_value,MyShifterValue->shifter_operand)){cpsr_val = set_bit(cpsr_val,28);}else{  cpsr_val = clr_bit(cpsr_val,28);}
 		arm_write_cpsr(p,cpsr_val);
 
 		free(MyShifterValue);
@@ -287,13 +286,13 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 		alu_out = Rn_value + MyShifterValue->shifter_operand;
 		 
 		/*N FLAG = alu_out[31]*/
-		if (get_bit(alu_out,31)==1){set_bit(cpsr_val,31); } else{clr_bit(cpsr_val,31);}
+		if (get_bit(alu_out,31)==1){cpsr_val = set_bit(cpsr_val,31); } else{  cpsr_val = clr_bit(cpsr_val,31);}
 		/*Z Flag = if alu_out == 0 then 1 else 0*/
-		if (alu_out ==0) {set_bit(cpsr_val,30);} else{clr_bit(cpsr_val,30);}
+		if (alu_out ==0) {cpsr_val = set_bit(cpsr_val,30);} else{  cpsr_val = clr_bit(cpsr_val,30);}
 		/*C flag CarryFrom(Rn_value+MyShifterValue->shifter_operand+(uint32_t)FLAG_c))*/	
-		if (carryFrom(Rn_value,MyShifterValue->shifter_operand,(uint32_t)0)){set_bit(cpsr_val,29);}else{clr_bit(cpsr_val,29);}
+		if (carryFrom(Rn_value,MyShifterValue->shifter_operand,(uint32_t)0)){cpsr_val = set_bit(cpsr_val,29);}else{  cpsr_val = clr_bit(cpsr_val,29);}
 		/*V FLAG OverflowFrom(Rn_value+MyShifterValue->shifter_operand+(uint32_t)FLAG_c))*/
-		if(OverflowFrom(Rd_value,Rn_value,MyShifterValue->shifter_operand)){set_bit(cpsr_val,28);}else{clr_bit(cpsr_val,28);}
+		if(OverflowFrom(Rd_value,Rn_value,MyShifterValue->shifter_operand)){cpsr_val = set_bit(cpsr_val,28);}else{  cpsr_val = clr_bit(cpsr_val,28);}
 		arm_write_cpsr(p,cpsr_val);
 
 		free(MyShifterValue);
@@ -309,11 +308,11 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 		else if(S==1){
 			 
 			/*N FLAG = RD[31]*/
-			if (get_bit(Rd_value,31)==1){set_bit(cpsr_val,31); } else{clr_bit(cpsr_val,31);}
+			if (get_bit(Rd_value,31)==1){cpsr_val = set_bit(cpsr_val,31); } else{  cpsr_val = clr_bit(cpsr_val,31);}
 			/*Z FLAG = 1 if Rd==0 */
-			if (Rd_value ==0) {set_bit(cpsr_val,30);} else{clr_bit(cpsr_val,30);}
+			if (Rd_value ==0) {cpsr_val = set_bit(cpsr_val,30);} else{  cpsr_val = clr_bit(cpsr_val,30);}
 			/*C flag not borrowFrom(rn - shifter_operand)*/	
-			if (MyShifterValue->shifter_carry_out){set_bit(cpsr_val,29);}else{clr_bit(cpsr_val,29);}
+			if (MyShifterValue->shifter_carry_out){cpsr_val = set_bit(cpsr_val,29);}else{  cpsr_val = clr_bit(cpsr_val,29);}
 			/*V FLAG unaffected*/
 			arm_write_cpsr(p,cpsr_val);
 		}
@@ -330,11 +329,11 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 		else if(S==1){
 			 
 			/*N FLAG = RD[31]*/
-			if (get_bit(Rd_value,31)==1){set_bit(cpsr_val,31); } else{clr_bit(cpsr_val,31);}
+			if (get_bit(Rd_value,31)==1){cpsr_val = set_bit(cpsr_val,31); } else{  cpsr_val = clr_bit(cpsr_val,31);}
 			/*Z FLAG = 1 if Rd==0 */
-			if (Rd_value ==0) {set_bit(cpsr_val,30);} else{clr_bit(cpsr_val,30);}
+			if (Rd_value ==0) {cpsr_val = set_bit(cpsr_val,30);} else{  cpsr_val = clr_bit(cpsr_val,30);}
 			/*C flag MyShifterValue->shifter_carry_out*/	
-			if (MyShifterValue->shifter_carry_out){set_bit(cpsr_val,29);}else{clr_bit(cpsr_val,29);}
+			if (MyShifterValue->shifter_carry_out){cpsr_val = set_bit(cpsr_val,29);}else{  cpsr_val = clr_bit(cpsr_val,29);}
 			/*V FLAG unaffected*/
 			arm_write_cpsr(p,cpsr_val);
 		}
@@ -351,11 +350,11 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 		else if(S==1){
 			 
 			/*N FLAG = RD[31]*/
-			if (get_bit(Rd_value,31)==1){set_bit(cpsr_val,31); } else{clr_bit(cpsr_val,31);}
+			if (get_bit(Rd_value,31)==1){cpsr_val = set_bit(cpsr_val,31); } else{  cpsr_val = clr_bit(cpsr_val,31);}
 			/*Z FLAG = 1 if Rd==0 */
-			if (Rd_value ==0) {set_bit(cpsr_val,30);} else{clr_bit(cpsr_val,30);}
+			if (Rd_value ==0) {cpsr_val = set_bit(cpsr_val,30);} else{  cpsr_val = clr_bit(cpsr_val,30);}
 			/*C flag MyShifterValue->shifter_carry_out*/	
-			if (MyShifterValue->shifter_carry_out){set_bit(cpsr_val,29);}else{clr_bit(cpsr_val,29);}
+			if (MyShifterValue->shifter_carry_out){cpsr_val = set_bit(cpsr_val,29);}else{  cpsr_val = clr_bit(cpsr_val,29);}
 			/*V FLAG unaffected*/
 			arm_write_cpsr(p,cpsr_val);
 		}
@@ -373,11 +372,11 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 		else if(S==1){
 			 
 			/*N FLAG = RD[31]*/
-			if (get_bit(Rd_value,31)==1){set_bit(cpsr_val,31); } else{clr_bit(cpsr_val,31);}
+			if (get_bit(Rd_value,31)==1){cpsr_val = set_bit(cpsr_val,31); } else{  cpsr_val = clr_bit(cpsr_val,31);}
 			/*Z FLAG = 1 if Rd==0 */
-			if (Rd_value ==0) {set_bit(cpsr_val,30);} else{clr_bit(cpsr_val,30);}
+			if (Rd_value ==0) {cpsr_val = set_bit(cpsr_val,30);} else{  cpsr_val = clr_bit(cpsr_val,30);}
 			/*C flag MyShifterValue->shifter_carry_out*/	
-			if (MyShifterValue->shifter_carry_out){set_bit(cpsr_val,29);}else{clr_bit(cpsr_val,29);}
+			if (MyShifterValue->shifter_carry_out){cpsr_val = set_bit(cpsr_val,29);}else{  cpsr_val = clr_bit(cpsr_val,29);}
 			/*V FLAG unaffected*/
 			arm_write_cpsr(p,cpsr_val);
 			
@@ -408,7 +407,7 @@ int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
 	shifter_carry_out = C flag
 	else /* rotate_imm != 0 
 	shifter_carry_out = shifter_operand[31] (page A5-6)*/
-	uint32_t  shifter_operand = (immed_8 >> (rotate_imm * 2)) | (immed_8 << (16 - rotate_imm * 2));
+	uint32_t  shifter_operand = (immed_8 >> (rotate_imm * 2)) | (immed_8 << (32 - rotate_imm * 2));
 	uint8_t shifter_carry_out = 0;
 	if (rotate_imm ==0) {shifter_carry_out = FLAG_c;}
 	else{shifter_carry_out = (uint8_t)get_bit(shifter_operand,31);}
@@ -442,11 +441,11 @@ int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
 		else if(S==1){
 			 
 			/*N FLAG = RD[31]*/
-			if (get_bit(Rd_value,31)==1){set_bit(cpsr_val,31); } else{clr_bit(cpsr_val,31);}
+			if (get_bit(Rd_value,31)==1){cpsr_val = set_bit(cpsr_val,31); } else{  cpsr_val = clr_bit(cpsr_val,31);}
 			/*Z FLAG = 1 if Rd==0 */
-			if (Rd_value ==0) {set_bit(cpsr_val,30);} else{clr_bit(cpsr_val,30);}
+			if (Rd_value ==0) {cpsr_val = set_bit(cpsr_val,30);} else{  cpsr_val = clr_bit(cpsr_val,30);}
 			/*C flag shifter_carry_out*/	
-			if (shifter_carry_out){set_bit(cpsr_val,29);}else{clr_bit(cpsr_val,29);}
+			if (shifter_carry_out){cpsr_val = set_bit(cpsr_val,29);}else{  cpsr_val = clr_bit(cpsr_val,29);}
 			/*V FLAG unaffected*/
 			arm_write_cpsr(p,cpsr_val);
 		}
@@ -463,11 +462,11 @@ int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
 		else if(S==1){
 			 
 			/*N FLAG = RD[31]*/
-			if (get_bit(Rd_value,31)==1){set_bit(cpsr_val,31); } else{clr_bit(cpsr_val,31);}
+			if (get_bit(Rd_value,31)==1){cpsr_val = set_bit(cpsr_val,31); } else{  cpsr_val = clr_bit(cpsr_val,31);}
 			/*Z FLAG = 1 if Rd==0 */
-			if (Rd_value ==0) {set_bit(cpsr_val,30);} else{clr_bit(cpsr_val,30);}
+			if (Rd_value ==0) {cpsr_val = set_bit(cpsr_val,30);} else{  cpsr_val = clr_bit(cpsr_val,30);}
 			/*C flag shifter_carry_out*/	
-			if (shifter_carry_out){set_bit(cpsr_val,29);}else{clr_bit(cpsr_val,29);}
+			if (shifter_carry_out){cpsr_val = set_bit(cpsr_val,29);}else{  cpsr_val = clr_bit(cpsr_val,29);}
 			/*V FLAG unaffected*/
 			arm_write_cpsr(p,cpsr_val);
 		}
@@ -481,15 +480,17 @@ int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
 			if(arm_current_mode_has_spsr(p)){arm_write_cpsr(p,(uint32_t)arm_read_spsr(p));}else{return UNDEFINED_INSTRUCTION;}
 		}
 		else if(S==1){
-			 
+
 			/*N FLAG = RD[31]*/
-			if (get_bit(Rd_value,31)==1){set_bit(cpsr_val,31); } else{clr_bit(cpsr_val,31);}
+			if (get_bit(Rd_value,31)==1){cpsr_val = set_bit(cpsr_val,31); } else{cpsr_val = clr_bit(cpsr_val,31);}
+
 			/*Z FLAG = 1 if Rd==0 */
-			if (Rd_value ==0) {set_bit(cpsr_val,30);} else{clr_bit(cpsr_val,30);}
+			if (Rd_value ==0) {cpsr_val = set_bit(cpsr_val,30);} else{cpsr_val =   cpsr_val = clr_bit(cpsr_val,30);}
+
 			/*C Flag = NOT BorrowFrom(Rn - shifter_operand)*/	
-			if (BorrowFrom(Rn_value,shifter_operand)){clr_bit(cpsr_val,29);}else{set_bit(cpsr_val,29);}
+			if (BorrowFrom(Rn_value,shifter_operand)){cpsr_val = clr_bit(cpsr_val,29);}else{cpsr_val = set_bit(cpsr_val,29);}
 			/*V Flag = OverflowFrom(Rn - shifter_operand)*/
-			if(OverflowFrom(Rd_value,Rn_value,shifter_operand)){set_bit(cpsr_val,28);}else{clr_bit(cpsr_val,28);}
+			if(OverflowFrom(Rd_value,Rn_value,shifter_operand)){cpsr_val = set_bit(cpsr_val,28);}else{cpsr_val = clr_bit(cpsr_val,28);}
 			arm_write_cpsr(p,cpsr_val);
 		}
 		return 0;
@@ -504,13 +505,13 @@ int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
 		else if(S==1){
 			 
 			/*N FLAG = RD[31]*/
-			if (get_bit(Rd_value,31)==1){set_bit(cpsr_val,31); } else{clr_bit(cpsr_val,31);}
+			if (get_bit(Rd_value,31)==1){cpsr_val = set_bit(cpsr_val,31); } else{  cpsr_val = clr_bit(cpsr_val,31);}
 			/*Z FLAG = 1 if Rd==0 */
-			if (Rd_value ==0) {set_bit(cpsr_val,30);} else{clr_bit(cpsr_val,30);}
+			if (Rd_value ==0) {cpsr_val = set_bit(cpsr_val,30);} else{  cpsr_val = clr_bit(cpsr_val,30);}
 			/*C Flag = NOT BorrowFrom(shifter_operand - Rn)*/	
-			if (BorrowFrom(shifter_operand,Rn_value)){clr_bit(cpsr_val,29);}else{set_bit(cpsr_val,29);}
+			if (BorrowFrom(shifter_operand,Rn_value)){  cpsr_val = clr_bit(cpsr_val,29);}else{cpsr_val = set_bit(cpsr_val,29);}
 			/*V Flag = OverflowFrom(shifter_operand - Rn)*/
-			if(OverflowFrom(Rd_value,shifter_operand,Rn_value)){set_bit(cpsr_val,28);}else{clr_bit(cpsr_val,28);}
+			if(OverflowFrom(Rd_value,shifter_operand,Rn_value)){cpsr_val = set_bit(cpsr_val,28);}else{  cpsr_val = clr_bit(cpsr_val,28);}
 			arm_write_cpsr(p,cpsr_val);
 		}
 		return 0;
@@ -526,13 +527,13 @@ int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
 		else if(S==1){
 			 
 			/*N FLAG = RD[31]*/
-			if (get_bit(Rd_value,31)==1){set_bit(cpsr_val,31); } else{clr_bit(cpsr_val,31);}
+			if (get_bit(Rd_value,31)==1){cpsr_val = set_bit(cpsr_val,31); } else{  cpsr_val = clr_bit(cpsr_val,31);}
 			/*Z FLAG = 1 if Rd==0 */
-			if (Rd_value ==0) {set_bit(cpsr_val,30);} else{clr_bit(cpsr_val,30);}
+			if (Rd_value ==0) {cpsr_val = set_bit(cpsr_val,30);} else{  cpsr_val = clr_bit(cpsr_val,30);}
 			/*C flag CarryFrom(Rn_value+shifter_operand+(uint32_t)FLAG_c))*/	
-			if (carryFrom(Rn_value,shifter_operand,(uint32_t)FLAG_c)){set_bit(cpsr_val,29);}else{clr_bit(cpsr_val,29);}
+			if (carryFrom(Rn_value,shifter_operand,(uint32_t)FLAG_c)){cpsr_val = set_bit(cpsr_val,29);}else{  cpsr_val = clr_bit(cpsr_val,29);}
 			/*V FLAG OverflowFrom(Rn_value+shifter_operand+(uint32_t)FLAG_c))*/
-			if(OverflowFrom(Rd_value,Rn_value,shifter_operand)){set_bit(cpsr_val,28);}else{clr_bit(cpsr_val,28);}
+			if(OverflowFrom(Rd_value,Rn_value,shifter_operand)){cpsr_val = set_bit(cpsr_val,28);}else{  cpsr_val = clr_bit(cpsr_val,28);}
 			arm_write_cpsr(p,cpsr_val);
 		}
 		return 0;
@@ -548,13 +549,13 @@ int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
 		else if(S==1){
 			 
 			/*N FLAG = RD[31]*/
-			if (get_bit(Rd_value,31)==1){set_bit(cpsr_val,31); } else{clr_bit(cpsr_val,31);}
+			if (get_bit(Rd_value,31)==1){cpsr_val = set_bit(cpsr_val,31); } else{  cpsr_val = clr_bit(cpsr_val,31);}
 			/*Z FLAG = 1 if Rd==0 */
-			if (Rd_value ==0) {set_bit(cpsr_val,30);} else{clr_bit(cpsr_val,30);}
+			if (Rd_value ==0) {cpsr_val = set_bit(cpsr_val,30);} else{  cpsr_val = clr_bit(cpsr_val,30);}
 			/*C flag CarryFrom(Rn_value+shifter_operand+(uint32_t)FLAG_c))*/	
-			if (carryFrom(Rn_value,shifter_operand,(uint32_t)FLAG_c)){set_bit(cpsr_val,29);}else{clr_bit(cpsr_val,29);}
+			if (carryFrom(Rn_value,shifter_operand,(uint32_t)FLAG_c)){cpsr_val = set_bit(cpsr_val,29);}else{  cpsr_val = clr_bit(cpsr_val,29);}
 			/*V FLAG OverflowFrom(Rn_value+shifter_operand+(uint32_t)FLAG_c))*/
-			if(OverflowFrom(Rd_value,Rn_value,shifter_operand)){set_bit(cpsr_val,28);}else{clr_bit(cpsr_val,28);}
+			if(OverflowFrom(Rd_value,Rn_value,shifter_operand)){cpsr_val = set_bit(cpsr_val,28);}else{  cpsr_val = clr_bit(cpsr_val,28);}
 			arm_write_cpsr(p,cpsr_val);
 		}
 		return 0;
@@ -569,13 +570,13 @@ int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
 		else if(S==1){
 			 
 			/*N FLAG = RD[31]*/
-			if (get_bit(Rd_value,31)==1){set_bit(cpsr_val,31); } else{clr_bit(cpsr_val,31);}
+			if (get_bit(Rd_value,31)==1){cpsr_val = set_bit(cpsr_val,31); } else{  cpsr_val = clr_bit(cpsr_val,31);}
 			/*Z FLAG = 1 if Rd==0 */
-			if (Rd_value ==0) {set_bit(cpsr_val,30);} else{clr_bit(cpsr_val,30);}
+			if (Rd_value ==0) {cpsr_val = set_bit(cpsr_val,30);} else{  cpsr_val = clr_bit(cpsr_val,30);}
 			/*C Flag = NOT BorrowFrom(Rn - shifter_operand)*/	
-			if (BorrowFrom(Rn_value,shifter_operand + (uint32_t)~FLAG_c)){clr_bit(cpsr_val,29);}else{set_bit(cpsr_val,29);}
+			if (BorrowFrom(Rn_value,shifter_operand + (uint32_t)~FLAG_c)){  cpsr_val = clr_bit(cpsr_val,29);}else{cpsr_val = set_bit(cpsr_val,29);}
 			/*V Flag = OverflowFrom(Rn - shifter_operand)*/
-			if(OverflowFrom(Rd_value,Rn_value,shifter_operand + (uint32_t)~FLAG_c)){set_bit(cpsr_val,28);}else{clr_bit(cpsr_val,28);}
+			if(OverflowFrom(Rd_value,Rn_value,shifter_operand + (uint32_t)~FLAG_c)){cpsr_val = set_bit(cpsr_val,28);}else{  cpsr_val = clr_bit(cpsr_val,28);}
 			arm_write_cpsr(p,cpsr_val);
 		}
 		return 0;
@@ -591,13 +592,13 @@ int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
 		else if(S==1){
 			 
 			/*N FLAG = RD[31]*/
-			if (get_bit(Rd_value,31)==1){set_bit(cpsr_val,31); } else{clr_bit(cpsr_val,31);}
+			if (get_bit(Rd_value,31)==1){cpsr_val = set_bit(cpsr_val,31); } else{  cpsr_val = clr_bit(cpsr_val,31);}
 			/*Z FLAG = 1 if Rd==0 */
-			if (Rd_value ==0) {set_bit(cpsr_val,30);} else{clr_bit(cpsr_val,30);}
+			if (Rd_value ==0) {cpsr_val = set_bit(cpsr_val,30);} else{  cpsr_val = clr_bit(cpsr_val,30);}
 			/*C Flag = NOT BorrowFrom(shifter_operand - Rn)*/	
-			if (BorrowFrom(shifter_operand,Rn_value+ (uint32_t)~FLAG_c)){clr_bit(cpsr_val,29);}else{set_bit(cpsr_val,29);}
+			if (BorrowFrom(shifter_operand,Rn_value+ (uint32_t)~FLAG_c)){  cpsr_val = clr_bit(cpsr_val,29);}else{cpsr_val = set_bit(cpsr_val,29);}
 			/*V Flag = OverflowFrom(shifter_operand - Rn)*/
-			if(OverflowFrom(Rd_value,shifter_operand,Rn_value + (uint32_t)~FLAG_c)){set_bit(cpsr_val,28);}else{clr_bit(cpsr_val,28);}
+			if(OverflowFrom(Rd_value,shifter_operand,Rn_value + (uint32_t)~FLAG_c)){cpsr_val = set_bit(cpsr_val,28);}else{  cpsr_val = clr_bit(cpsr_val,28);}
 			arm_write_cpsr(p,cpsr_val);
 		}
 		return 0;
@@ -614,11 +615,11 @@ int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
 		else if(S==1){
 			 
 			/*N FLAG = RD[31]*/
-			if (get_bit(Rd_value,31)==1){set_bit(cpsr_val,31); } else{clr_bit(cpsr_val,31);}
+			if (get_bit(Rd_value,31)==1){cpsr_val = set_bit(cpsr_val,31); } else{  cpsr_val = clr_bit(cpsr_val,31);}
 			/*Z FLAG = 1 if Rd==0 */
-			if (Rd_value ==0) {set_bit(cpsr_val,30);} else{clr_bit(cpsr_val,30);}
+			if (Rd_value ==0) {cpsr_val = set_bit(cpsr_val,30);} else{  cpsr_val = clr_bit(cpsr_val,30);}
 			/*C flag not borrowFrom(rn - shifter_operand)*/	
-			if (shifter_carry_out){set_bit(cpsr_val,29);}else{clr_bit(cpsr_val,29);}
+			if (shifter_carry_out){cpsr_val = set_bit(cpsr_val,29);}else{  cpsr_val = clr_bit(cpsr_val,29);}
 			/*V FLAG unaffected*/
 			arm_write_cpsr(p,cpsr_val);
 		}
@@ -634,11 +635,11 @@ int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
 		else if(S==1){
 			 
 			/*N FLAG = RD[31]*/
-			if (get_bit(Rd_value,31)==1){set_bit(cpsr_val,31); } else{clr_bit(cpsr_val,31);}
+			if (get_bit(Rd_value,31)==1){cpsr_val = set_bit(cpsr_val,31); } else{  cpsr_val = clr_bit(cpsr_val,31);}
 			/*Z FLAG = 1 if Rd==0 */
-			if (Rd_value ==0) {set_bit(cpsr_val,30);} else{clr_bit(cpsr_val,30);}
+			if (Rd_value ==0) {cpsr_val = set_bit(cpsr_val,30);} else{  cpsr_val = clr_bit(cpsr_val,30);}
 			/*C flag shifter_carry_out*/	
-			if (shifter_carry_out){set_bit(cpsr_val,29);}else{clr_bit(cpsr_val,29);}
+			if (shifter_carry_out){cpsr_val = set_bit(cpsr_val,29);}else{  cpsr_val = clr_bit(cpsr_val,29);}
 			/*V FLAG unaffected*/
 			arm_write_cpsr(p,cpsr_val);
 		}
@@ -654,11 +655,11 @@ int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
 		else if(S==1){
 			 
 			/*N FLAG = RD[31]*/
-			if (get_bit(Rd_value,31)==1){set_bit(cpsr_val,31); } else{clr_bit(cpsr_val,31);}
+			if (get_bit(Rd_value,31)==1){cpsr_val = set_bit(cpsr_val,31); } else{  cpsr_val = clr_bit(cpsr_val,31);}
 			/*Z FLAG = 1 if Rd==0 */
-			if (Rd_value ==0) {set_bit(cpsr_val,30);} else{clr_bit(cpsr_val,30);}
+			if (Rd_value ==0) {cpsr_val = set_bit(cpsr_val,30);} else{  cpsr_val = clr_bit(cpsr_val,30);}
 			/*C flag shifter_carry_out*/	
-			if (shifter_carry_out){set_bit(cpsr_val,29);}else{clr_bit(cpsr_val,29);}
+			if (shifter_carry_out){cpsr_val = set_bit(cpsr_val,29);}else{  cpsr_val = clr_bit(cpsr_val,29);}
 			/*V FLAG unaffected*/
 			arm_write_cpsr(p,cpsr_val);
 		}
@@ -674,11 +675,11 @@ int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
 		else if(S==1){
 			 
 			/*N FLAG = RD[31]*/
-			if (get_bit(Rd_value,31)==1){set_bit(cpsr_val,31); } else{clr_bit(cpsr_val,31);}
+			if (get_bit(Rd_value,31)==1){cpsr_val = set_bit(cpsr_val,31); } else{  cpsr_val = clr_bit(cpsr_val,31);}
 			/*Z FLAG = 1 if Rd==0 */
-			if (Rd_value ==0) {set_bit(cpsr_val,30);} else{clr_bit(cpsr_val,30);}
+			if (Rd_value ==0) {cpsr_val = set_bit(cpsr_val,30);} else{  cpsr_val = clr_bit(cpsr_val,30);}
 			/*C flag shifter_carry_out*/	
-			if (shifter_carry_out){set_bit(cpsr_val,29);}else{clr_bit(cpsr_val,29);}
+			if (shifter_carry_out){cpsr_val = set_bit(cpsr_val,29);}else{  cpsr_val = clr_bit(cpsr_val,29);}
 			/*V FLAG unaffected*/
 			arm_write_cpsr(p,cpsr_val);
 		}
@@ -877,14 +878,13 @@ shifter_values* shifter_values_calculator(arm_core p,uint32_t ins,uint8_t FLAG_c
 					MyShifterValue->shifter_carry_out = (uint8_t)get_bit(Rm,31);
 				}
 				else /* Rs[4:0] > 0 */{
-					// Calculate the number of bits in an unsigned int
-					uint8_t numBits = sizeof(uint32_t) * 8;
+
 
 					// Ensure the shift_imm value is within the range of 0 to numBits - 1
-					Rs4_0 = Rs4_0 % numBits;
+					Rs4_0 = Rs4_0 % 32;
 
 					// Perform the right rotation
-					MyShifterValue->shifter_operand = (Rm >> Rs4_0) | (Rm << (numBits - Rs4_0));
+					MyShifterValue->shifter_operand = (Rm >> Rs4_0) | (Rm << (32 - Rs4_0));
 					MyShifterValue->shifter_carry_out = (uint8_t)get_bit(Rm,Rs4_0-1);
 				}
 				

@@ -77,6 +77,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 			/*V FLAG unaffected*/
 			arm_write_cpsr(p,cpsr_val);
 		}
+		return 0;
 		break;
 
 	case 0b0001: // EOR (page A4-32) opcode:0001
@@ -96,6 +97,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 			/*V FLAG unaffected*/
 			arm_write_cpsr(p,cpsr_val);
 		}
+		return 0;
 		break;
 	
 	case 0b0010: //SUB (page A4-208) opcode:0010
@@ -116,6 +118,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 			if(OverflowFrom(Rd_value,Rn_value,MyShifterValue->shifter_operand)){set_bit(cpsr_val,28);}else{clr_bit(cpsr_val,28);}
 			arm_write_cpsr(p,cpsr_val);
 		}
+		return 0;
 		break;
 
 	case 0b0011: //RSB (page A4-115) opcode:0011
@@ -136,6 +139,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 			if(OverflowFrom(Rd_value,MyShifterValue->shifter_operand,Rn_value)){set_bit(cpsr_val,28);}else{clr_bit(cpsr_val,28);}
 			arm_write_cpsr(p,cpsr_val);
 		}
+		return 0;
 		break;
 	
 	case 0b0100: //ADD (page A4-6) opcode: 0100
@@ -157,6 +161,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 			if(OverflowFrom(Rd_value,Rn_value,MyShifterValue->shifter_operand)){set_bit(cpsr_val,28);}else{clr_bit(cpsr_val,28);}
 			arm_write_cpsr(p,cpsr_val);
 		}
+		return 0;
 		break;
 
 	case 0b0101: //0101 ADC Syntax: ADC{<cond>}{S} <Rd>, <Rn>, <shifter_operand> (page A4-4)
@@ -178,6 +183,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 			if(OverflowFrom(Rd_value,Rn_value,MyShifterValue->shifter_operand)){set_bit(cpsr_val,28);}else{clr_bit(cpsr_val,28);}
 			arm_write_cpsr(p,cpsr_val);
 		}
+		return 0;
 		break;
 
 	case 0b0110: //SBC (page A4-125) opcode: 0110
@@ -198,6 +204,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 			if(OverflowFrom(Rd_value,Rn_value,MyShifterValue->shifter_operand + (uint32_t)~FLAG_c)){set_bit(cpsr_val,28);}else{clr_bit(cpsr_val,28);}
 			arm_write_cpsr(p,cpsr_val);
 		}
+		return 0;
 		break;
 
 	
@@ -219,6 +226,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 			if(OverflowFrom(Rd_value,MyShifterValue->shifter_operand,Rn_value + (uint32_t)~FLAG_c)){set_bit(cpsr_val,28);}else{clr_bit(cpsr_val,28);}
 			arm_write_cpsr(p,cpsr_val);
 		}
+		return 0;
 		break;
 
 	case 0b1000 : //TST (page A4-230) opcode:1000
@@ -232,6 +240,8 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 		if (MyShifterValue->shifter_carry_out){set_bit(cpsr_val,29);}else{clr_bit(cpsr_val,29);}
 		/*V FLAG unaffected*/
 		arm_write_cpsr(p,cpsr_val);
+
+		return 0;
 		break;
 
 	case 9: //1001 TEQ
@@ -245,6 +255,8 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 		if (MyShifterValue->shifter_carry_out){set_bit(cpsr_val,29);}else{clr_bit(cpsr_val,29);}
 		/*V FLAG unaffected*/
 		arm_write_cpsr(p,cpsr_val);
+
+		return 0;
 		break;
 
 	case 0b1010: //CMP (page:A4-28) opcode:1010
@@ -259,6 +271,8 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 		/*V Flag = OverflowFrom(Rn - shifter_operand)*/
 		if(OverflowFrom(Rd_value,Rn_value,MyShifterValue->shifter_operand)){set_bit(cpsr_val,28);}else{clr_bit(cpsr_val,28);}
 		arm_write_cpsr(p,cpsr_val);
+
+		return 0;
 		break;
 
 	case 0b1011: //CMN (page A4-26) opcode:1011
@@ -273,6 +287,8 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 		/*V FLAG OverflowFrom(Rn_value+MyShifterValue->shifter_operand+(uint32_t)FLAG_c))*/
 		if(OverflowFrom(Rd_value,Rn_value,MyShifterValue->shifter_operand)){set_bit(cpsr_val,28);}else{clr_bit(cpsr_val,28);}
 		arm_write_cpsr(p,cpsr_val);
+
+		return 0;
 		break;
 	
 	case 0b1100: //ORR (page A4-84) opcode:1100
@@ -292,6 +308,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 			/*V FLAG unaffected*/
 			arm_write_cpsr(p,cpsr_val);
 		}
+		return 0;
 		break;
 
 	case 0b1101: //MOV (page A4-68) opcode:1101
@@ -311,6 +328,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 			/*V FLAG unaffected*/
 			arm_write_cpsr(p,cpsr_val);
 		}
+		return 0;
 		break;
 
 	case 0b1110: // BIC (page A4-12) opcode:1110
@@ -330,7 +348,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 			/*V FLAG unaffected*/
 			arm_write_cpsr(p,cpsr_val);
 		}
-	
+		return 0;
 		break;
 
 	case 0b1111: //1111 MVN
@@ -350,9 +368,11 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 			/*V FLAG unaffected*/
 			arm_write_cpsr(p,cpsr_val);
 		}
+		return 0;
 		break;
 	
 	default:
+		return UNDEFINED_INSTRUCTION;
 		break;
 	}
 	return UNDEFINED_INSTRUCTION;
@@ -415,6 +435,7 @@ int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
 			/*V FLAG unaffected*/
 			arm_write_cpsr(p,cpsr_val);
 		}
+		return 0;
 		break;
 
 	case 0b0001: // EOR (page A4-32) opcode:0001
@@ -434,6 +455,7 @@ int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
 			/*V FLAG unaffected*/
 			arm_write_cpsr(p,cpsr_val);
 		}
+		return 0;
 		break;
 	
 	case 0b0010: //SUB (page A4-208) opcode:0010
@@ -454,6 +476,7 @@ int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
 			if(OverflowFrom(Rd_value,Rn_value,shifter_operand)){set_bit(cpsr_val,28);}else{clr_bit(cpsr_val,28);}
 			arm_write_cpsr(p,cpsr_val);
 		}
+		return 0;
 		break;
 
 	case 0b0011: //RSB (page A4-115) opcode:0011
@@ -474,6 +497,7 @@ int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
 			if(OverflowFrom(Rd_value,shifter_operand,Rn_value)){set_bit(cpsr_val,28);}else{clr_bit(cpsr_val,28);}
 			arm_write_cpsr(p,cpsr_val);
 		}
+		return 0;
 		break;
 	
 	case 0b0100: //ADD (page A4-6) opcode: 0100
@@ -495,6 +519,7 @@ int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
 			if(OverflowFrom(Rd_value,Rn_value,shifter_operand)){set_bit(cpsr_val,28);}else{clr_bit(cpsr_val,28);}
 			arm_write_cpsr(p,cpsr_val);
 		}
+		return 0;
 		break;
 
 	case 0b0101: //0101 ADC Syntax: ADC{<cond>}{S} <Rd>, <Rn>, <shifter_operand> (page A4-4)
@@ -516,6 +541,7 @@ int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
 			if(OverflowFrom(Rd_value,Rn_value,shifter_operand)){set_bit(cpsr_val,28);}else{clr_bit(cpsr_val,28);}
 			arm_write_cpsr(p,cpsr_val);
 		}
+		return 0;
 		break;
 
 	case 0b0110: //SBC (page A4-125) opcode: 0110
@@ -536,6 +562,7 @@ int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
 			if(OverflowFrom(Rd_value,Rn_value,shifter_operand + (uint32_t)~FLAG_c)){set_bit(cpsr_val,28);}else{clr_bit(cpsr_val,28);}
 			arm_write_cpsr(p,cpsr_val);
 		}
+		return 0;
 		break;
 
 	
@@ -557,6 +584,7 @@ int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
 			if(OverflowFrom(Rd_value,shifter_operand,Rn_value + (uint32_t)~FLAG_c)){set_bit(cpsr_val,28);}else{clr_bit(cpsr_val,28);}
 			arm_write_cpsr(p,cpsr_val);
 		}
+		return 0;
 		break;
 
 	
@@ -578,6 +606,7 @@ int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
 			/*V FLAG unaffected*/
 			arm_write_cpsr(p,cpsr_val);
 		}
+		return 0;
 		break;
 
 	case 0b1101: //MOV (page A4-68) opcode:1101
@@ -597,6 +626,7 @@ int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
 			/*V FLAG unaffected*/
 			arm_write_cpsr(p,cpsr_val);
 		}
+		return 0;
 		break;
 
 	case 0b1110: // BIC (page A4-12) opcode:1110
@@ -616,7 +646,7 @@ int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
 			/*V FLAG unaffected*/
 			arm_write_cpsr(p,cpsr_val);
 		}
-	
+		return 0;
 		break;
 
 	case 0b1111: //1111 MVN
@@ -636,6 +666,7 @@ int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
 			/*V FLAG unaffected*/
 			arm_write_cpsr(p,cpsr_val);
 		}
+		return 0;
 		break;
 		
 		default:

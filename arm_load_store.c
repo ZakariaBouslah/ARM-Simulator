@@ -354,6 +354,17 @@ int instruction_strb(arm_core p, uint32_t ins){//A4-195
     write_back_rn(p,ins,address);
     return 0;
 }
+
+int instruction_strbt(arm_core p, uint32_t ins){
+    //a completer
+    return UNDEFINED_INSTRUCTION;
+}
+
+int instruction_strd(arm_core p, uint32_t ins){
+    //a completer
+    return UNDEFINED_INSTRUCTION;
+}
+
 int instruction_strh(arm_core p, uint32_t ins){//A4-204 p354
     uint16_t half;
     uint32_t address = determiner_misaddr(p,ins);
@@ -367,47 +378,63 @@ int instruction_strh(arm_core p, uint32_t ins){//A4-204 p354
     write_back_mis_rn(p,ins,address);
     return 0;
 }
-int instruction_strbt(arm_core p, uint32_t ins){
-    //a completer
-    return UNDEFINED_INSTRUCTION;
-}
-int instruction_strbt(arm_core p, uint32_t ins){
-    //a completer
-    return UNDEFINED_INSTRUCTION;
-}
-int instruction_strd(arm_core p, uint32_t ins){
-    //a completer
-    return UNDEFINED_INSTRUCTION;
-}
-int instruction_strsh(arm_core p, uint32_t ins){
-    //a completer
-    return UNDEFINED_INSTRUCTION;
-}
+
 int instruction_strt(arm_core p, uint32_t ins){
     //a completer
     return UNDEFINED_INSTRUCTION;
 }
+//A3-25 p133
 int arm_load_store(arm_core p, uint32_t ins) {
     int type = get_bits(ins,27,26);
-    
-    if(type){
-        if(bitL(ins) == 1 && !bitB(ins)){
-            instruction_ldr(p,ins);//ldr    !bit24 && bit21 -->ldrt  
-        }else if(bitL(ins) && bitB(ins)){
-            instruction_ldrb(p,ins);//ldrb
-        }else if(!bitL(ins) && !bitB(ins)){
-            instruction_str(p,ins);//str
-        }else if(!bitL(ins) && bitB(ins)){
-            instruction_strb(p,ins);//strb
-        }else return UNDEFINED_INSTRUCTION;
-    }else if(!type && !bitI(ins)){
-        if(bitL(ins)){
-            instruction_ldrh(p,ins);//ldrh
-        }else if(!bitL(ins)){
-            instruction_strh(p,ins);//strh
-        }else return UNDEFINED_INSTRUCTION;
-    }
-    return 0;    
+    int bit7_4 = get_bits(ins,7,4);
+
+    switch(type){
+        case 0b00:
+            if(bit7_4 = 0b1011){
+                if(get_bit(ins,20)==0){
+                    return instruction_strh(p,ins);//
+                }else{
+                    return instruction_ldrh(p,ins);//
+                }
+            }else if(bit7_4 = 0b1101){
+                if(get_bit(ins,20)==0){
+                    return instruction_ldrd(p,ins);//
+                }else{
+                    return instruction_ldrsb(p,ins);//
+                }
+            }else if(bit7_4 = 0b1111){
+                if(get_bit(ins,20)==0){
+                    return instruction_strd(p,ins);//
+                }else{
+                    return instruction_ldrsh(p,ins);//
+                }
+            }else return UNDEFINED_INSTRUCTION;
+        case 0b01:
+            if(bitB(ins) == 0 && bitL(ins) == 0){
+                if(bitP(ins) == 0 && bitW(ins) == 1){
+                    return instruction_strt(p,ins);
+                }
+                return instruction_str(p,ins);
+            }else if(bitB(ins) == 1 && bitL(ins) == 0){
+                if(bitP(ins) == 0 && bitW(ins) == 1){
+                    return instruction_strbt(p,ins);
+                }
+                return instruction_strb(p,ins);
+            }else if(bitB(ins) == 0 && bitL(ins) == 1){
+                if(bitP(ins) == 0 && bitW(ins) == 1){
+                    return instruction_ldrt(p,ins);
+                }
+                return instruction_ldr(p,ins);
+            }else if(bitB(ins) == 1 && bitL(ins) == 1){
+                if(bitP(ins) == 0 && bitW(ins) == 1){
+                    return instruction_ldrbt(p,ins);
+                }
+                return instruction_ldrb(p,ins);
+            }else return UNDEFINED_INSTRUCTION;
+        default:
+            return UNDEFINED_INSTRUCTION;
+
+    }   
 }
 
 //multiple
@@ -419,16 +446,82 @@ int Number_of_Set_Bits_In(uint32_t ins){
     }
     return res;
 }
-
-//A4-36
+//DA IA DB IB  A5.4 p481
+void addr_ls_multiple(arm_core p,uint32_t ins, uint32_t *start, uint32_t *end){
+    if(get_bit(ins,24) && get_bit(ins,23)){//Increment before
+        *start = arm_read_register(p,bits_rn(ins)) + 4;
+        *end = arm_read_register(p,bits_rn(ins)) + 4 * Number_of_Set_Bits_In(ins);
+        if(bitW(ins)){
+            arm_write_register(p,bits_rn(ins),arm_read_register(p,bits_rn(ins)) + Number_of_Set_Bits_In(ins) *4);
+        }
+    }else if(get_bit(ins,24) && !get_bit(ins,23)){//Decrement before
+        *start = arm_read_register(p,bits_rn(ins)) - 4*Number_of_Set_Bits_In(ins);
+        *end = arm_read_register(p,bits_rn(ins)) - 4;
+        if(bitW(ins)){
+            arm_write_register(p,bits_rn(ins),arm_read_register(p,bits_rn(ins)) - Number_of_Set_Bits_In(ins) *4);
+        }
+    }else if(!get_bit(ins,24) && get_bit(ins,23)){//Increment after
+        *start = arm_read_register(p,bits_rn(ins));
+        *end = arm_read_register(p,bits_rn(ins)) + 4*Number_of_Set_Bits_In(ins) -4;
+        if(bitW(ins)){
+            arm_write_register(p,bits_rn(ins),arm_read_register(p,bits_rn(ins)) + Number_of_Set_Bits_In(ins) *4);
+        }
+    }else if(!get_bit(ins,24) && !get_bit(ins,23)){//Decrement after
+        *start = arm_read_register(p,bits_rn(ins)) - 4*Number_of_Set_Bits_In(ins) + 4;
+        *end = arm_read_register(p,bits_rn(ins));
+        if(bitW(ins)){
+            arm_write_register(p,bits_rn(ins),arm_read_register(p,bits_rn(ins)) - Number_of_Set_Bits_In(ins) *4);
+        }
+    }
+}
+//A4-36 p186
+//loads a non-empty subset of the general-purpose registers to sequential memory locations.
 int instruction_ldm1(arm_core p, uint32_t ins){
-    return UNDEFINED_INSTRUCTION;
-    
+    uint32_t start,end;
+    uint32_t address,word;
+    addr_ls_multiple(p,ins,&start,&end);
+    address = start;
+    int i;
+    for(i = 0;i<15;i++){
+        if(get_bit(ins,i)==1){
+            arm_read_word(p,address,&word);
+            arm_write_register(p,i,word);
+            address +=4;
+        }
+    }
+    if(get_bit(ins,15)==1){
+        arm_read_word(p,address,&word);
+        arm_write_register(p,15,word & 0xFFFFFFFE);
+         //T bit = value[0]
+        uint8_t t_bit = get_bit(word,0);
+        if(t_bit == 0){
+            arm_write_cpsr(p,clr_bit(arm_read_cpsr(p),5));
+        }else
+            arm_write_cpsr(p,set_bit(arm_read_spsr(p),5));
+
+        address +=4;
+    }
+    assert(end == (address -4));
+    return 0;
 }
+//A4-189 p339
+//stores a non-empty subset of the general-purpose registers to sequential memory locations.
 int instruction_stm1(arm_core p, uint32_t ins){
-    return UNDEFINED_INSTRUCTION;
-    
+    uint32_t start,end;
+    uint32_t address;
+    addr_ls_multiple(p,ins,&start,&end);
+    address = start;
+    int i ;
+    for(i = 0;i<15;i++){
+        if(get_bit(ins,i)==1){
+            arm_write_word(p,address,arm_read_register(p,i));
+            address +=4;
+        }
+    }
+    assert(end == (address -4));
+    return 0;
 }
+
 int instruction_ldm2(arm_core p, uint32_t ins){
     return UNDEFINED_INSTRUCTION;
 }
@@ -440,24 +533,22 @@ int instruction_ldm3(arm_core p, uint32_t ins){
 }
 
 
-//DA IA DB IB  A3-26 p134
+//A3-26 p134
 int arm_load_store_multiple(arm_core p, uint32_t ins) {
-    int type = get_bits(ins,27,25);
+    //int type = get_bits(ins,27,25);
     int bit_15 = get_bit(ins,15);
 
-    if(type == 4){
-        if(bitL(ins) && !bitB(ins)){
-            instruction_ldm1(p,ins);
-        }else if(bitL(ins) && bitB(ins) && !bitW(ins) && !bit_15){
-            instruction_ldm2(p,ins);
-        }else if(bitL(ins) && bitB(ins) && bit_15){
-            instruction_ldm3(p,ins);
-        }else if(!bitL(ins) && !bitB(ins)){
-            instruction_stm1(p,ins);
-        }else if(!bitL(ins) && bitB(ins) && !bitW(ins)){
-            instruction_stm2(p,ins);
-        }else return UNDEFINED_INSTRUCTION;
-    }
+    if(bitL(ins) && !bitB(ins)){
+        instruction_ldm1(p,ins);
+    }else if(bitL(ins) && bitB(ins) && !bitW(ins) && !bit_15){
+        instruction_ldm2(p,ins);
+    }else if(bitL(ins) && bitB(ins) && bit_15){
+        instruction_ldm3(p,ins);
+    }else if(!bitL(ins) && !bitB(ins)){
+        instruction_stm1(p,ins);
+    }else if(!bitL(ins) && bitB(ins) && !bitW(ins)){
+        instruction_stm2(p,ins);
+    }else return UNDEFINED_INSTRUCTION;
     return 0;
 }
 

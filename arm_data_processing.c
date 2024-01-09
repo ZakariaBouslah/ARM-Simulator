@@ -77,6 +77,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 			/*V FLAG unaffected*/
 			arm_write_cpsr(p,cpsr_val);
 		}
+		free(MyShifterValue);
 		return 0;
 		break;
 
@@ -97,6 +98,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 			/*V FLAG unaffected*/
 			arm_write_cpsr(p,cpsr_val);
 		}
+		free(MyShifterValue);
 		return 0;
 		break;
 	
@@ -118,6 +120,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 			if(OverflowFrom(Rd_value,Rn_value,MyShifterValue->shifter_operand)){set_bit(cpsr_val,28);}else{clr_bit(cpsr_val,28);}
 			arm_write_cpsr(p,cpsr_val);
 		}
+		free(MyShifterValue);
 		return 0;
 		break;
 
@@ -139,6 +142,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 			if(OverflowFrom(Rd_value,MyShifterValue->shifter_operand,Rn_value)){set_bit(cpsr_val,28);}else{clr_bit(cpsr_val,28);}
 			arm_write_cpsr(p,cpsr_val);
 		}
+		free(MyShifterValue);
 		return 0;
 		break;
 	
@@ -161,6 +165,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 			if(OverflowFrom(Rd_value,Rn_value,MyShifterValue->shifter_operand)){set_bit(cpsr_val,28);}else{clr_bit(cpsr_val,28);}
 			arm_write_cpsr(p,cpsr_val);
 		}
+		free(MyShifterValue);
 		return 0;
 		break;
 
@@ -183,6 +188,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 			if(OverflowFrom(Rd_value,Rn_value,MyShifterValue->shifter_operand)){set_bit(cpsr_val,28);}else{clr_bit(cpsr_val,28);}
 			arm_write_cpsr(p,cpsr_val);
 		}
+		free(MyShifterValue);
 		return 0;
 		break;
 
@@ -204,6 +210,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 			if(OverflowFrom(Rd_value,Rn_value,MyShifterValue->shifter_operand + (uint32_t)~FLAG_c)){set_bit(cpsr_val,28);}else{clr_bit(cpsr_val,28);}
 			arm_write_cpsr(p,cpsr_val);
 		}
+		free(MyShifterValue);
 		return 0;
 		break;
 
@@ -226,6 +233,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 			if(OverflowFrom(Rd_value,MyShifterValue->shifter_operand,Rn_value + (uint32_t)~FLAG_c)){set_bit(cpsr_val,28);}else{clr_bit(cpsr_val,28);}
 			arm_write_cpsr(p,cpsr_val);
 		}
+		free(MyShifterValue);
 		return 0;
 		break;
 
@@ -241,6 +249,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 		/*V FLAG unaffected*/
 		arm_write_cpsr(p,cpsr_val);
 
+		free(MyShifterValue);
 		return 0;
 		break;
 
@@ -256,6 +265,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 		/*V FLAG unaffected*/
 		arm_write_cpsr(p,cpsr_val);
 
+		free(MyShifterValue);
 		return 0;
 		break;
 
@@ -272,6 +282,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 		if(OverflowFrom(Rd_value,Rn_value,MyShifterValue->shifter_operand)){set_bit(cpsr_val,28);}else{clr_bit(cpsr_val,28);}
 		arm_write_cpsr(p,cpsr_val);
 
+		free(MyShifterValue);
 		return 0;
 		break;
 
@@ -288,6 +299,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 		if(OverflowFrom(Rd_value,Rn_value,MyShifterValue->shifter_operand)){set_bit(cpsr_val,28);}else{clr_bit(cpsr_val,28);}
 		arm_write_cpsr(p,cpsr_val);
 
+		free(MyShifterValue);
 		return 0;
 		break;
 	
@@ -308,6 +320,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 			/*V FLAG unaffected*/
 			arm_write_cpsr(p,cpsr_val);
 		}
+		free(MyShifterValue);
 		return 0;
 		break;
 
@@ -328,6 +341,7 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 			/*V FLAG unaffected*/
 			arm_write_cpsr(p,cpsr_val);
 		}
+		free(MyShifterValue);
 		return 0;
 		break;
 
@@ -348,6 +362,8 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 			/*V FLAG unaffected*/
 			arm_write_cpsr(p,cpsr_val);
 		}
+		free(MyShifterValue);
+
 		return 0;
 		break;
 
@@ -367,7 +383,9 @@ int arm_data_processing_shift(arm_core p, uint32_t ins) {
 			if (MyShifterValue->shifter_carry_out){set_bit(cpsr_val,29);}else{clr_bit(cpsr_val,29);}
 			/*V FLAG unaffected*/
 			arm_write_cpsr(p,cpsr_val);
+			
 		}
+		free(MyShifterValue);
 		return 0;
 		break;
 	
@@ -435,6 +453,7 @@ int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
 			/*V FLAG unaffected*/
 			arm_write_cpsr(p,cpsr_val);
 		}
+		
 		return 0;
 		break;
 

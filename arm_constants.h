@@ -33,6 +33,7 @@ Contact: Guillaume.Huard@imag.fr
 #define UND 0x1b
 #define SYS 0x1f
 
+
 /* Registers */
 // #define R0		0
 // #define R1		1
@@ -71,6 +72,21 @@ Contact: Guillaume.Huard@imag.fr
 // #define SPSR_UND	34
 // #define SPSR_IRQ	35
 // #define SPSR_FIQ	36
+
+
+/* bit */
+#define bitL(x) get_bit(x,20)
+#define bitW(x) get_bit(x,21)
+#define bitB(x) get_bit(x,22)
+#define bitU(x) get_bit(x,23)
+#define bitP(x) get_bit(x,24)
+#define bitI(x) get_bit(x,25)
+#define bits_rm(x) get_bits(x,3,0)
+#define bits_rn(x) get_bits(x,19,16)
+#define bits_rd(x) get_bits(x,15,12)
+
+
+
 /* ARM Exceptions (by priority) */
 #define RESET                   1
 #define DATA_ABORT              2

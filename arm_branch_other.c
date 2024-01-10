@@ -54,23 +54,33 @@ int arm_branch(arm_core p, uint32_t ins) {
 }
 
 int arm_coprocessor_others_swi(arm_core p, uint32_t ins) {
-    if (get_bit(ins, 24)) {
+    if ((ins & 0xFF000000) == 0xEF000000) {
+        uint32_t return_address = arm_read_register(p, 15) + 4; 
+        arm_write_register(p, 14, return_address);
         return SOFTWARE_INTERRUPT;
     }
     return UNDEFINED_INSTRUCTION;
 }
 
 int arm_miscellaneous(arm_core p, uint32_t ins) {
-    //Vérifiez si l'instruction est une instruction CLZ
-    if ((ins & 0x0FF000F0) == 0x016F0F10) { 
-        uint32_t Rm = get_bits(ins, 3, 0);
-        uint32_t Rd = get_bits(ins, 15, 12);
-        uint32_t value = arm_read_register(p, Rm); 
+    // Vérifier si l'instruction est MRS
+    if ((ins & 0x0FBF0FFF) == 0x010F0000) {
+        uint32_t Rd = get_bits(ins, 15, 12); 
+        uint32_t R_bit = get_bit(ins, 22);  
 
-        uint32_t leading_zeros = value ? __builtin_clz(value) : 32;
+        if (Rd == 15) {
+            return -1;    // Le résultat est imprévisible
+        }
 
-        arm_write_register(p, Rd, leading_zeros);
-        return 0;
+        uint32_t value;
+        if (R_bit) {
+            value = arm_read_spsr(p);
+        } else {
+            value = arm_read_cpsr(p);
+        }
+        arm_write_register(p, Rd, value);
+        return 0; 
     }
-    return UNDEFINED_INSTRUCTION;}
+    return UNDEFINED_INSTRUCTION; 
+}
 //com

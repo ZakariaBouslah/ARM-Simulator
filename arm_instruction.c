@@ -113,7 +113,9 @@ static int arm_execute_instruction(arm_core p) {
                 return arm_coprocessor_load_store(p,ins);
             case 7:
                 return arm_coprocessor_others_swi(p,ins);
-        }
+            default:
+                return UNDEFINED_INSTRUCTION;
+        }   
     }
     return 0;
 }

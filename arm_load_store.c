@@ -116,7 +116,7 @@ int is_register_offset(uint32_t ins){//offset +- arm_read_register(p,Rm)
     return 0;
 }
 int is_scaled_offset(uint32_t ins){
-    if(get_bits(ins,27,25) == 0x011 && !get_bit(ins,4)){
+    if(get_bits(ins,27,25) == 0x011 && get_bits(ins,11,4)!=0){
         return 1;
     }
     return 0;

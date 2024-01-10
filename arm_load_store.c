@@ -1,164 +1,697 @@
 /*
-Armator - simulateur de jeu d'instruction ARMv5T à but pédagogique
+Armator - simulateur de jeu d'instruction ARMv5T � but p�dagogique
 Copyright (C) 2011 Guillaume Huard
 Ce programme est libre, vous pouvez le redistribuer et/ou le modifier selon les
-termes de la Licence Publique Générale GNU publiée par la Free Software
-Foundation (version 2 ou bien toute autre version ultérieure choisie par vous).
+termes de la Licence Publique G�n�rale GNU publi�e par la Free Software
+Foundation (version 2 ou bien toute autre version ult�rieure choisie par vous).
 
-Ce programme est distribué car potentiellement utile, mais SANS AUCUNE
+Ce programme est distribu� car potentiellement utile, mais SANS AUCUNE
 GARANTIE, ni explicite ni implicite, y compris les garanties de
-commercialisation ou d'adaptation dans un but spécifique. Reportez-vous à la
-Licence Publique Générale GNU pour plus de détails.
+commercialisation ou d'adaptation dans un but sp�cifique. Reportez-vous � la
+Licence Publique G�n�rale GNU pour plus de d�tails.
 
-Vous devez avoir reçu une copie de la Licence Publique Générale GNU en même
-temps que ce programme ; si ce n'est pas le cas, écrivez à la Free Software
+Vous devez avoir re�u une copie de la Licence Publique G�n�rale GNU en m�me
+temps que ce programme ; si ce n'est pas le cas, �crivez � la Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307,
-États-Unis.
+�tats-Unis.
 
 Contact: Guillaume.Huard@imag.fr
-	 Bâtiment IMAG
+	 B�timent IMAG
 	 700 avenue centrale, domaine universitaire
-	 38401 Saint Martin d'Hères
+	 38401 Saint Martin d'H�res
 */
 #include "arm_load_store.h"
 #include "arm_exception.h"
 #include "arm_constants.h"
 #include "util.h"
 #include "debug.h"
+#include <assert.h>
 
 
-int arm_load_store(arm_core p, uint32_t ins) {
-    //variables utilisés
-    int adr = arm_read_register(p, (unit8_t)(ins & 0x000F0000)>>16);
-    int off = 0;
-    uint8_t rdest = ((ins & 0x0000F000)>>12);
-    int i = 0x00400000;
-    int h = 1;
-	if(ins & 0x04000000){
-		i = 0x02000000;
-        h = 0;
-	}
-    int op = 0;
-    int val;
-
-
-    //CALCUL DE L'OFFSET
-    if(!(i & ins) && !h){               //word ou byte avec valeur immédiate
-        off = ins & 0x00000FFF;
-    }
-    else if(!(i & ins)){                //half avec valeur immédiate
-        off = (ins & 0X0000000F) + ((ins & 0x00000F00)>>4);
-    }
-    else if(!h){                        //word ou byte avec registre comme offset
-        off = arm_read_register(p, (unit8_t)(ins & 0x0F));
-        int sh = (ins & 0x00000060)>>4;
-        op = (ins & 0x00000F80)>>7;
-        if(sh == 0){off = lsl(off, op);}        //choix du shift demandé pour la valeur du registre d'offset
-        else if(sh == 1){off = lsr(off, op);}
-        else if(sh == 2){off = asr(off, op);}
-        else if(op == 0){off = rxr(off);}
-        else{op = ror(off, op);}
-    }
-    else{                                //half avec registre comme offset
-        off = arm_read_register(p, (unit8_t)(ins & 0x0F));
+//L/S      :
+//      byte/word :LDR ,LDRB,LDRH,STR,STRB,STRH
+//      misce
+//Multiple :LDM(1),STM(1)
+//Mode 2
+uint32_t calcul_addr_immediate(arm_core p,uint32_t ins){//A5-20 p460
+    uint32_t addr = 0;
+    //uint8_t rn = get_bits(ins,19,16);
+    uint16_t offset = get_bits(ins,11,0);
+    if (bitU(ins)){
+        return addr = arm_read_register(p,bits_rn(ins)) + offset;
+    }else{
+        return addr = arm_read_register(p,bits_rn(ins)) - offset;
     }
     
-
-
-
-    if(ins & 0x00800000){adr = adr + off;}
-    else{adr = adr - off;}              //calcul dudécallage avec l'offset(bit U)
-
-
-    if(((ins & 0x01000000)>>24) == ((ins & 0x00200000)>>21)){   //mise à jour du registre adresse
-        arm_write_register(p, (ins & 0x000F0000)>>16, adr);
+}
+uint32_t calcul_addr_register(arm_core p,uint32_t ins){//P A5-21
+    uint32_t addr = 0;
+    //uint8_t rn = get_bits(ins,19,16);
+    //uint8_t rm = get_bits(ins,3,0);
+    if (bitU(ins)){
+        return addr = arm_read_register(p,bits_rn(ins)) + arm_read_register(p,bits_rm(ins));
+    }else{
+        return addr = arm_read_register(p,bits_rn(ins)) - arm_read_register(p,bits_rm(ins));
     }
+}
+uint32_t calcul_addr_scaled(arm_core p,uint32_t ins){//P A5-22
+    uint32_t addr = 0;
+    uint32_t shift = get_bits(ins,6,5);
+    uint32_t index = 0;
+    uint32_t shift_imm = get_bits(ins,11,7);
+    switch (shift){
+        case 0b00://LSL
+            index = arm_read_register(p,bits_rm(ins)) << shift_imm;
+            break;
+        case 0b01://LSR
+            if(shift_imm == 0){
+                index = 0;
+            }else{
+                index = arm_read_register(p,bits_rm(ins)) >> shift_imm;
+            }
+            break;
+        case 0b10://ASR
+            if(shift_imm ==0){
+                if(get_bit(arm_read_register(p,bits_rm(ins)),31) == 1){
+                    index = 0xFFFFFFFF;
+                }else
+                    index = 0;
+            }else{
+                index = asr(arm_read_register(p,bits_rm(ins)),shift_imm);
+            }
+            break;
+        case 0b11://ROR/RRX
+            if(shift_imm ==0){//RRX
+                uint32_t c_flag = get_bit(arm_read_cpsr(p),29) << 31;
+                uint32_t rm_val = arm_read_register(p,bits_rm(ins)) >> 1;
+                index = c_flag | rm_val;
 
-
-    int val;
-    if(ins & 0x00100000){               //ldr
-        if(h){
-            (uint16_t)(val);
-            val = arm_read_half(p, adr, &val);
-        }
-        else if(ins & 0x00400000){
-            (uint8_t)(val);
-            val = arm_read_byte(p, adr, &val);
-        }
-        else{
-            (uint32_t)(val);
-            val = arm_read_word(p, adr, &val);
-        }
-        arm_write_register(p, rdest, val);
-        return 0;
+            }else{//ROR
+                index = ror(arm_read_register(p,bits_rm(ins)),shift_imm);
+            }
+            break;
+    
+        default:
+            index = 0;
+            break;
     }
-
-    else{                               //str
-    val = arm_read_register(p, rdest);
-        if(h){
-            (uint16_t)(val);
-            arm_write_half(p, adr, val);
-            return 0;
+    if (bitU(ins)){
+        return addr = arm_read_register(p,bits_rn(ins)) + index;
+    }else{
+        return addr = arm_read_register(p,bits_rn(ins)) - index;
+    }
+    
+}
+//A5-18 p458 used to calculate the address for load and store word or byte
+int is_immediate_offset(uint32_t ins){//offset +-12  A5-18 p458
+    if(get_bits(ins,27,25)==0x010){
+        return 1;
+    }
+    return 0;
+}
+int is_register_offset(uint32_t ins){//offset +- arm_read_register(p,Rm)
+    if(get_bits(ins,27,25) == 0x011 && get_bits(ins,11,4)==0 ){
+        return 1;
+    }
+    return 0;
+}
+int is_scaled_offset(uint32_t ins){
+    if(get_bits(ins,27,25) == 0x011 && !get_bit(ins,4)){
+        return 1;
+    }
+    return 0;
+}
+//A5-20 p460
+uint32_t determiner_addr(arm_core p,uint32_t ins){
+    int bitP = get_bit(ins,24);
+    int bitW = get_bit(ins,21);
+    //int bitI = get_bit(ins,25);
+    uint32_t addr;
+    if(bitP==0 && bitW ==0){//post index 
+        if(is_immediate_offset(ins)){//A5-28 p468
+            addr = arm_read_register(p,bits_rn(ins));
+        }else if(is_register_offset(ins)){//A5-30
+            addr = arm_read_register(p,bits_rn(ins));
+        }else if(is_scaled_offset(ins)){//A5-31
+            addr = arm_read_register(p,bits_rn(ins));
         }
-        else if(ins & 0x00400000){
-            (uint8_t)(val);
-            arm_write_byte(p, adr, val);
-            return 0;
+    }else if(bitP ==1 && bitW == 0){//immediate offset
+        if(is_immediate_offset(ins)){//A5-20 p460
+            addr = calcul_addr_immediate(p,ins);
+        }else if(is_register_offset(ins)){//A5-21
+            addr = calcul_addr_register(p,ins);
+        }else if(is_scaled_offset(ins)){//A5-22
+            addr = calcul_addr_scaled(p,ins);
         }
-        else{
-            (uint32_t)(val);
-            arm_write_word(p, adr, val);
-            return 0;
+    }else if(bitP == 0 && bitW == 1){
+        return UNDEFINED_INSTRUCTION;
+        
+    }else if(bitP == 1 && bitW == 1){//pre index
+        if(is_immediate_offset(ins)){//A5-24 p464
+            addr = calcul_addr_immediate(p,ins);
+        }else if(is_register_offset(ins)){//A5-25
+            addr = calcul_addr_register(p,ins);
+        }else if(is_scaled_offset(ins)){//A5-26
+            addr = calcul_addr_scaled(p,ins);
         }
     }
-
-    return UNDEFINED_INSTRUCTION;
+    return addr;
+}
+//A5-24 address written back to the base register Rn
+uint32_t write_back_rn(arm_core p,uint32_t ins,uint32_t addr){
+    int bitP = get_bit(ins,24);
+    int bitW = get_bit(ins,21);
+    //int bitI = get_bit(ins,25);
+    //uint32_t addr;
+    //ifconditionpassed then
+    if(bitP==0 && bitW ==0){//post index 
+        if(is_immediate_offset(ins)){//A5-28 p468
+            arm_write_register(p,bits_rn(ins),calcul_addr_immediate(p,ins));//+-12
+        }else if(is_register_offset(ins)){//A5-30
+            arm_write_register(p,bits_rn(ins),calcul_addr_register(p,ins));//+-rm
+        }else if(is_scaled_offset(ins)){//A5-31
+            arm_write_register(p,bits_rn(ins),calcul_addr_scaled(p,ins));//+-index
+        }
+    }else if(bitP == 1 && bitW == 1){//pre index
+        if(is_immediate_offset(ins)){//A5-24 p464
+            arm_write_register(p,bits_rn(ins),addr);
+        }else if(is_register_offset(ins)){//A5-25
+            arm_write_register(p,bits_rn(ins),addr);
+        }else if(is_scaled_offset(ins)){//A5-26
+            arm_write_register(p,bits_rn(ins),addr);
+        }
+    }
+    return 0;
 }
 
-int arm_load_store_multiple(arm_core p, uint32_t ins) {
-    //récupération des parties utiles de l'instruction
-    uint32_t adr = arm_read_register(p, (uint8_t)((ins & 0x000F0000)>>16));
-    uint16_t reg = ins & 0xFFFF;
-    int p = ins & 0x01000000;
-    int u = ins & 0x00800000;
-    int s = ins & 0x00400000;
-    int w = ins & 0x00200000;
-    int l = ins & 0x00100000;
-    uint8_t i = 0;
-    int j = 0;
-    if(p){
-        if(u){adr = adr + 4;}
-        else{adr = adr - 4;}
+//Mode 3
+//A5-33 p473 used to calculate the address for load and store  halfword  load signed byte or load and store doubleword
+int is_misimmediate_offset(uint32_t ins){
+    if(get_bits(ins,27,25)==0x000 && bitB(ins) == 1){
+        return 1;
     }
+    return 0;
+}
+int is_misregister_offset(uint32_t ins){
+    if(get_bits(ins,27,25)==0x000 && bitB(ins) == 0){
+        return 1;
+    }
+    return 0;
+}
 
+//miscellaneous loads and store immediate offset
+uint32_t calcul_addr_misimmediate(arm_core p,uint32_t ins){//A5-35 p475
+    uint32_t addr = 0;
+    uint8_t immedH = get_bits(ins,11,8);
+    uint8_t immedL = get_bits(ins,3,0);
 
-
-    while(!j){
-        if(reg & (1<<i)){            //le registre codé par le bit numéro i est concerné
-            if(l && !s){arm_write_register(p, i, arm_read_word(p, adr, p->reg[i]));}
-            else if(l && s){arm_write_usr_register(p, i, arm_read_word(p, adr, p->reg[i]);)}
-            else if(!l && !s){arm_write_word(p, adr, arm_read_register(p, i))}
-            else{arm_write_word(p, adr, arm_read_usr_register(p, i));}
-            if(u){adr = adr + 4;}
-            else{adr = adr - 4;}
+    uint8_t offset = (immedH << 4) | immedL;
+    if (bitU(ins)){
+        return addr = arm_read_register(p,bits_rn(ins)) + offset;
+    }else{
+        return addr = arm_read_register(p,bits_rn(ins)) - offset;
+    }
+    
+}
+//miscellaneous loads and store immediate offset
+uint32_t calcul_addr_misregister(arm_core p,uint32_t ins){//A5-36
+    uint32_t addr = 0;
+    //uint8_t rn = get_bits(ins,19,16);
+    //uint8_t rm = get_bits(ins,3,0);
+    if (bitU(ins)){
+        return addr = arm_read_register(p,bits_rn(ins)) + arm_read_register(p,bits_rm(ins));
+    }else{
+        return addr = arm_read_register(p,bits_rn(ins)) - arm_read_register(p,bits_rm(ins));
+    }
+}
+//bit P W determiner pre/post index A5-34
+uint32_t determiner_mis_addr(arm_core p,uint32_t ins){
+    uint32_t addr;
+    if(bitP(ins)==0 && bitW(ins) ==0){//post index 
+        if(is_misimmediate_offset(ins)){//A5-39
+            addr = calcul_addr_misimmediate(p,bits_rn(ins));
+        }else if(is_misregister_offset(ins)){//A5-40
+            addr = calcul_addr_misregister(p,bits_rn(ins));
+        }  
+    }else if(bitP(ins) ==1 && bitW(ins) == 0){//unchanged offset addressing A5-35
+        if(is_misimmediate_offset(ins)){
+            addr = calcul_addr_misimmediate(p,ins);
+        }else if(is_misregister_offset(ins)){
+            addr = calcul_addr_misregister(p,ins);
+        }    
+    }else if(bitP(ins) == 0 && bitW(ins) == 1){
+        return UNDEFINED_INSTRUCTION;
+        
+    }else if(bitP(ins) == 1 && bitW(ins) == 1){//pre index A5-37
+        if(is_misimmediate_offset(ins)){
+            addr = calcul_addr_misimmediate(p,ins);
+            //rn = addr
+        }else if(is_misregister_offset(ins)){
+            addr = calcul_addr_misregister(p,ins);
+            //rn = addr
+        } 
+    }
+    return addr;
+}
+//apres visiter les donne A5-24 address written back to teh base register Rn
+uint32_t write_back_mis_rn(arm_core p,uint32_t ins,uint32_t addr){
+    int bitP = get_bit(ins,24);
+    int bitW = get_bit(ins,21);
+    //int bitI = get_bit(ins,25);
+    //uint32_t addr;
+    //ifconditionpassed then
+    if(bitP==0 && bitW ==0){//post index 
+        if(is_immediate_offset(ins)){//A5-39
+            arm_write_register(p,bits_rn(ins),calcul_addr_misimmediate(p,ins));//+-8
+        }else if(is_register_offset(ins)){//A5-40
+            arm_write_register(p,bits_rn(ins),calcul_addr_misregister(p,ins));//+-rm
         }
-
-        if(i == 15){j++;}
-        i++;
+    }else if(bitP == 1 && bitW == 1){//pre index
+        if(is_misimmediate_offset(ins)){
+            arm_write_register(p,bits_rn(ins),addr);
+            //rn = addr
+        }else if(is_misregister_offset(ins)){
+            arm_write_register(p,bits_rn(ins),addr);
+            //rn = addr
+        }    
     }
+    return 0;
+}
 
 
-    if((reg & (1 << 15)) && s && arm_current_mode_has_spsr(p)){
-        arm_write_cpsr(p, arm_read_spsr(p));
+
+//instrction load/store
+int instruction_ldr(arm_core p, uint32_t ins){//A4-43 p193
+    //uint8_t rd = get_bits(ins,15,12);
+    // uint32_t offset = get_bits(ins,11,0);
+    uint32_t address = determiner_addr(p,ins);
+    uint32_t word;
+    if(arm_read_word(p,address,&word)==0){
+        if(bits_rd(ins) == 15){
+            arm_write_register(p,bits_rd(ins),word & 0xFFFFFFFE);
+            uint8_t t_bit = get_bit(word,0);
+            if(t_bit == 0){
+                arm_write_cpsr(p,clr_bit(arm_read_cpsr(p),5));
+            }else
+                arm_write_cpsr(p,set_bit(arm_read_spsr(p),5));
+        }else{
+            arm_write_register(p,bits_rd(ins),word);
         }
+    }
+    write_back_rn(p,ins,address);
+    return 0;
+}
+int instruction_ldrb(arm_core p, uint32_t ins){//A4-46
+    uint8_t byte;
+    uint32_t address = determiner_addr(p,ins);
+    arm_read_byte(p,address,&byte);
+    arm_write_register(p,bits_rd(ins),byte);
+    write_back_rn(p,ins,address);
+    return 0;
+}
 
-    if(w){
-        arm_write_register(p, (unit8_t)(ins & 0x000F0000)>>16), adr);
+//A4-48 Mode 2 loads a byte from memory system and zero-extends the byte to a 32-bit word.(USER mode)
+int instruction_ldrbt(arm_core p, uint32_t ins){
+
+    uint8_t byte;
+    uint32_t address = determiner_addr(p,ins);
+    arm_read_byte(p,address,&byte);
+    arm_write_usr_register(p,bits_rd(ins),byte);
+    write_back_rn(p,ins,address);
+    return 0;
+}
+//A4-50 Mode 3 loads a pair fo ARM registers from two consecutive words of memory
+int instruction_ldrd(arm_core p, uint32_t ins){
+    //a completer
+    uint32_t word1,word2;
+    uint32_t address = determiner_mis_addr(p,ins);
+    if((bits_rd(ins) % 2) == 0 && bits_rd(ins) != 14 && get_bits(address,1,0) == 0b00 && get_bit(address,2) == 0){
+        arm_read_word(p,address,&word1);
+        arm_read_word(p,address+4,&word2);
+        arm_write_register(p,bits_rd(ins),word1);
+        arm_write_register(p,bits_rd(ins)+1,word2);
+    }
+    // else
+    //     return UNDEFINED_INSTRUCTION;
+    write_back_mis_rn(p,ins,address);
+    return 0;
+}
+
+//A4-54 Mode3 loads a halfword from memory and zero-extends it to a 32-bit word.
+int instruction_ldrh(arm_core p, uint32_t ins){ 
+    uint16_t half;
+    uint32_t address = determiner_mis_addr(p,ins);
+    //CP15_reg1_Ubit 
+    if(get_bit(address,0) == 0){
+    half = arm_read_half(p,address,&half);
+    }else
+        return UNDEFINED_INSTRUCTION;
+    
+
+    arm_write_register(p,bits_rd(ins),half);
+    write_back_mis_rn(p,ins,address);
+    return 0;
+}
+//A4-56 Mode3 loads a byte from memory and sign-extends the byte to a 32-bit word.
+int instruction_ldrsb(arm_core p, uint32_t ins){
+    uint8_t byte;
+    uint32_t extend_word;
+    uint32_t address = determiner_mis_addr(p,ins);
+
+    arm_read_byte(p,address,&byte);
+    extend_word = (uint32_t)byte;
+    arm_write_register(p,bits_rd(ins),extend_word);
+
+    write_back_mis_rn(p,ins,address);
+    return 0;
+}
+//A4-58 Mode3 loads a halfword from memory and sign-extends the halfword to a 32-bit word.
+int instruction_ldrsh(arm_core p, uint32_t ins){
+    uint16_t half;
+    uint32_t extend_word;
+    uint32_t address = determiner_mis_addr(p,ins);
+
+    if(get_bit(address,0) == 0){
+        arm_read_half(p,address,&half);
+    }else{
+        return UNDEFINED_INSTRUCTION;
+    }
+    
+    extend_word = (uint32_t)half;
+    arm_write_register(p,bits_rd(ins),extend_word);
+
+    write_back_mis_rn(p,ins,address);
+    
+    return 0;
+}
+
+//A4-60 Mode2 loads a word from memory (User mode)
+int instruction_ldrt(arm_core p, uint32_t ins){
+    uint32_t word;
+    uint32_t address = determiner_mis_addr(p,ins);
+
+    arm_read_word(p,address,&word);
+    arm_write_usr_register(p,bits_rd(ins),word);
+
+    write_back_rn(p,ins,address);
+    return 0;
+}
+
+//A4-193 p 343
+//mode 2 stores a word from a register to memory
+int instruction_str(arm_core p, uint32_t ins){
+    uint32_t address = determiner_addr(p,ins);  
+    arm_write_word(p,address,arm_read_register(p,bits_rd(ins)));
+    write_back_rn(p,ins,address);
+    return 0;
+}
+
+//mode 2 stores a byte from the least significant byte of a register to memory
+int instruction_strb(arm_core p, uint32_t ins){//A4-195
+    uint32_t address = determiner_addr(p,ins);  
+    arm_write_word(p,address,arm_read_register(p,bits_rd(ins)&0xFF));  //rd[7:0]
+    write_back_rn(p,ins,address);
+    return 0;
+}
+
+//A4-197 mode 2 stores a byte from the least significant byte of a register to memory (USER mode)
+int instruction_strbt(arm_core p, uint32_t ins){
+    //uint8_t byte;
+    uint32_t address;
+    address = determiner_addr(p,ins);
+
+    arm_write_byte(p,address,arm_read_register(p,bits_rd(ins))&0xFF);
+    write_back_rn(p,ins,address);
+    
+    return 0;
+}
+
+//A4-199 Mode 3 stores a pair of ARM registers to two consecutive words of memory.
+int instruction_strd(arm_core p, uint32_t ins){
+    uint32_t word1,word2;
+    uint32_t address = determiner_mis_addr(p,ins);
+    if((bits_rd(ins) % 2) == 0 && bits_rd(ins) != 14 && get_bits(address,1,0) == 0b00 && get_bit(address,2) == 0){
+        word1 = arm_read_register(p,bits_rn(ins));
+        word2 = arm_read_register(p,bits_rn(ins)+1);
+
+        arm_write_word(p,address,word1);
+        arm_write_word(p,address+4,word2);
+    }else
+        return UNDEFINED_INSTRUCTION;
+
+    write_back_mis_rn(p,ins,address);
+    return 0;
+}
+
+//A4-204 mode 3 stores a halfword from the least significant halfword of a register to memory.
+int instruction_strh(arm_core p, uint32_t ins){//A4-204 p354
+    uint16_t half;
+    uint32_t address = determiner_mis_addr(p,ins);
+    //if(bitU(ins)==0)
+    if(get_bit(address,0) == 0b0){
+        half = arm_read_register(p,bits_rd(ins));
+    }else
+        return UNDEFINED_INSTRUCTION;
+
+    arm_write_half(p,address,half);
+    write_back_mis_rn(p,ins,address);
+    return 0;
+}
+
+//A4-206 Mode 2 stores a word from a register to memory. (USER mode)
+int instruction_strt(arm_core p, uint32_t ins){
+    uint32_t word;
+    uint32_t address;
+    address = determiner_addr(p,ins);
+
+    word = arm_read_register(p,bits_rd(ins));
+    arm_write_word(p,address,word);
+
+    write_back_rn(p,ins,address);
+    return 0;
+}
+
+int arm_load_store(arm_core p, uint32_t ins) {
+    int type = get_bits(ins,27,26);
+    int bit7_4 = get_bits(ins,7,4);
+
+    switch(type){
+        case 0b00:
+            if(bit7_4 == 0b1011){
+                if(get_bit(ins,20)==0){
+                    return instruction_strh(p,ins);//
+                }else{
+                    return instruction_ldrh(p,ins);//
+                }
+            }else if(bit7_4 == 0b1101){
+                if(get_bit(ins,20)==0){
+                    return instruction_ldrd(p,ins);//
+                }else{
+                    return instruction_ldrsb(p,ins);//
+                }
+            }else if(bit7_4 == 0b1111){
+                if(get_bit(ins,20)==0){
+                    return instruction_strd(p,ins);//
+                }else{
+                    return instruction_ldrsh(p,ins);//
+                }
+            }else return UNDEFINED_INSTRUCTION;
+        case 0b01:
+            if(bitB(ins) == 0 && bitL(ins) == 0){
+                if(bitP(ins) == 0 && bitW(ins) == 1){
+                    return instruction_strt(p,ins);
+                }
+                return instruction_str(p,ins);
+            }else if(bitB(ins) == 1 && bitL(ins) == 0){
+                if(bitP(ins) == 0 && bitW(ins) == 1){
+                    return instruction_strbt(p,ins);
+                }
+                return instruction_strb(p,ins);
+            }else if(bitB(ins) == 0 && bitL(ins) == 1){
+                if(bitP(ins) == 0 && bitW(ins) == 1){
+                    return instruction_ldrt(p,ins);
+                }
+                return instruction_ldr(p,ins);
+            }else if(bitB(ins) == 1 && bitL(ins) == 1){
+                if(bitP(ins) == 0 && bitW(ins) == 1){
+                    return instruction_ldrbt(p,ins);
+                }
+                return instruction_ldrb(p,ins);
+            }else return UNDEFINED_INSTRUCTION;
+        default:
+            return UNDEFINED_INSTRUCTION;
+
+    }   
+}
+
+//multiple
+int Number_of_Set_Bits_In(uint32_t ins){
+    int i = 0;
+    int res = 0;
+    for(i = 0; i < 16; i++){
+        res = res + get_bit(ins,i);
+    }
+    return res;
+}
+//DA IA DB IB  A5.4 p481
+void addr_ls_multiple(arm_core p,uint32_t ins, uint32_t *start, uint32_t *end){
+    if(get_bit(ins,24) && get_bit(ins,23)){//Increment before
+        *start = arm_read_register(p,bits_rn(ins)) + 4;
+        *end = arm_read_register(p,bits_rn(ins)) + 4 * Number_of_Set_Bits_In(ins);
+        if(bitW(ins)){
+            arm_write_register(p,bits_rn(ins),arm_read_register(p,bits_rn(ins)) + Number_of_Set_Bits_In(ins) *4);
+        }
+    }else if(get_bit(ins,24) && !get_bit(ins,23)){//Decrement before
+        *start = arm_read_register(p,bits_rn(ins)) - 4*Number_of_Set_Bits_In(ins);
+        *end = arm_read_register(p,bits_rn(ins)) - 4;
+        if(bitW(ins)){
+            arm_write_register(p,bits_rn(ins),arm_read_register(p,bits_rn(ins)) - Number_of_Set_Bits_In(ins) *4);
+        }
+    }else if(!get_bit(ins,24) && get_bit(ins,23)){//Increment after
+        *start = arm_read_register(p,bits_rn(ins));
+        *end = arm_read_register(p,bits_rn(ins)) + 4*Number_of_Set_Bits_In(ins) -4;
+        if(bitW(ins)){
+            arm_write_register(p,bits_rn(ins),arm_read_register(p,bits_rn(ins)) + Number_of_Set_Bits_In(ins) *4);
+        }
+    }else if(!get_bit(ins,24) && !get_bit(ins,23)){//Decrement after
+        *start = arm_read_register(p,bits_rn(ins)) - 4*Number_of_Set_Bits_In(ins) + 4;
+        *end = arm_read_register(p,bits_rn(ins));
+        if(bitW(ins)){
+            arm_write_register(p,bits_rn(ins),arm_read_register(p,bits_rn(ins)) - Number_of_Set_Bits_In(ins) *4);
+        }
+    }
+}
+//A4-36 p186
+//loads a non-empty subset of the general-purpose registers to sequential memory locations.
+int instruction_ldm1(arm_core p, uint32_t ins){
+    uint32_t start,end;
+    uint32_t address,word;
+    addr_ls_multiple(p,ins,&start,&end);
+    address = start;
+    int i;
+    for(i = 0;i<15;i++){
+        if(get_bit(ins,i)==1){
+            arm_read_word(p,address,&word);
+            arm_write_register(p,i,word);
+            address +=4;
+        }
+    }
+    if(get_bit(ins,15)==1){
+        arm_read_word(p,address,&word);
+        arm_write_register(p,15,word & 0xFFFFFFFE);
+         //T bit = value[0]
+        uint8_t t_bit = get_bit(word,0);
+        if(t_bit == 0){
+            arm_write_cpsr(p,clr_bit(arm_read_cpsr(p),5));
+        }else
+            arm_write_cpsr(p,set_bit(arm_read_spsr(p),5));
+
+        address +=4;
+    }
+    assert(end == (address -4));
+    return 0;
+}
+//A4-189 p339
+//stores a non-empty subset of the general-purpose registers to sequential memory locations.
+int instruction_stm1(arm_core p, uint32_t ins){
+    uint32_t start,end;
+    uint32_t address;
+    addr_ls_multiple(p,ins,&start,&end);
+    address = start;
+    int i ;
+    for(i = 0;i<16;i++){
+        if(get_bit(ins,i)==1){
+            arm_write_word(p,address,arm_read_register(p,i));
+            address +=4;
+        }
+    }
+    assert(end == (address -4));
+    return 0;
+}
+//A4-38 load user mode registers when the processor is in a privileged mode.
+int instruction_ldm2(arm_core p, uint32_t ins){
+    uint32_t start,end;
+    uint32_t address,word;
+    addr_ls_multiple(p,ins,&start,&end);
+    address = start;
+    int i;
+    for(i = 0;i<15;i++){
+        if(get_bit(ins,i)==1){
+            arm_read_word(p,address,&word);
+            arm_write_usr_register(p,i,word);
+            address +=4;
+        }
+    }
+    assert(end == (address -4));
+    return 0;
+}
+
+//USER MODE stores a subset of the User mode general-purpose registers to sequential memory locations.
+int instruction_stm2(arm_core p, uint32_t ins){
+    uint32_t start,end;
+    uint32_t address;
+    addr_ls_multiple(p,ins,&start,&end);
+    address = start;
+    int i ;
+    for(i = 0;i<16;i++){
+        if(get_bit(ins,i)==1){
+            arm_write_word(p,address,arm_read_usr_register(p,i));
+            address +=4;
+        }
     }
 
+    assert(end == (address -4));
+    return 0;
+}
+
+//A4-40 loads a subset ,or possibly all, of the general-purpose registers and the pc from sequential memory locations.
+int instruction_ldm3(arm_core p, uint32_t ins){
+    uint32_t start,end;
+    uint32_t address,word;
+    uint32_t value;
+    addr_ls_multiple(p,ins,&start,&end);
+    address = start;
+    int i;
+    for(i = 0;i<15;i++){
+        if(get_bit(ins,i)==1){
+            arm_read_word(p,address,&word);
+            arm_write_register(p,i,word);
+            address +=4;
+        }
+    }
+    if(arm_current_mode_has_spsr(p)){
+        //cpsr = spsr
+        arm_write_cpsr(p,arm_read_spsr(p));
+    }else{
+        return UNDEFINED_INSTRUCTION;
+    }
+    arm_read_word(p,address,&value);
+    arm_write_register(p,15,value);
+
+    address +=4;
+    assert(end == (address -4));
     return 0;
 
-    return UNDEFINED_INSTRUCTION;
+}
+
+
+//A3-26 p134
+int arm_load_store_multiple(arm_core p, uint32_t ins) {
+    //int type = get_bits(ins,27,25);
+    int bit_15 = get_bit(ins,15);
+
+    if(bitL(ins) && !bitB(ins)){
+        instruction_ldm1(p,ins);
+    }else if(bitL(ins) && bitB(ins) && !bitW(ins) && !bit_15){
+        instruction_ldm2(p,ins);
+    }else if(bitL(ins) && bitB(ins) && bit_15){
+        instruction_ldm3(p,ins);
+    }else if(!bitL(ins) && !bitB(ins)){
+        instruction_stm1(p,ins);
+    }else if(!bitL(ins) && bitB(ins) && !bitW(ins)){
+        instruction_stm2(p,ins);
+    }else return UNDEFINED_INSTRUCTION;
+    return 0;
 }
 
 int arm_coprocessor_load_store(arm_core p, uint32_t ins) {

@@ -26,13 +26,17 @@ Contact: Guillaume.Huard@imag.fr
 #include <debug.h>
 #include <stdlib.h>
 
-int32_t sign_extend_30(uint32_t value) {
-    if (value & (1 << 23)) {
-        value |= 0xFC000000; 
-    } else {
-        value &= 0x00FFFFFF; 
+int32_t sign_extend_30(int32_t value) {
+    // Check the sign bit of the 24-bit value
+    int32_t signBit = value & 0x00800000;
+
+    // If the sign bit is set (negative value), sign-extend by setting the upper 6 bits
+    if (signBit) {
+        return value | 0xFFC00000;
     }
-    return (int32_t)value; 
+
+    // If the sign bit is not set (positive value), simply return the original value
+    return value;
 }
 
 int arm_branch(arm_core p, uint32_t ins) {
@@ -43,10 +47,10 @@ int arm_branch(arm_core p, uint32_t ins) {
     int32_t signed_immed_24 = get_bits(ins, 23, 0);
     offset = sign_extend_30(signed_immed_24) << 2; 
 
-    target_address = PC + 8 + offset; // vers l'adresse de la deuxième instruction après l'instruction en cours
+    target_address = PC + offset; // vers l'adresse de la deuxième instruction après l'instruction en cours
 
     if (is_BL) {
-        uint32_t LR = PC + 4; // LR est l'adresse de la prochaine instruction de l'instruction en cours
+        uint32_t LR = PC-4; // LR est l'adresse de la prochaine instruction de l'instruction en cours
         arm_write_register(p, 14, LR);
     }
     arm_write_register(p, 15, target_address);
@@ -54,17 +58,14 @@ int arm_branch(arm_core p, uint32_t ins) {
 }
 
 int arm_coprocessor_others_swi(arm_core p, uint32_t ins) {
-    if ((ins & 0xFF000000) == 0xEF000000) {
-        uint32_t return_address = arm_read_register(p, 15) + 4; 
-        arm_write_register(p, 14, return_address);
-        return SOFTWARE_INTERRUPT;
-    }
-    return UNDEFINED_INSTRUCTION;
+    uint32_t return_address = arm_read_register(p, 15)-4; 
+    arm_write_register(p, 14, return_address);
+    return SOFTWARE_INTERRUPT;
 }
 
 int arm_miscellaneous(arm_core p, uint32_t ins) {
     // Vérifier si l'instruction est MRS
-    if ((ins & 0x0FBF0FFF) == 0x010F0000) {
+    if ((get_bits(ins, 27, 23) == 0b00010) && get_bits(ins, 21,20)==0) {
         uint32_t Rd = get_bits(ins, 15, 12); 
         uint32_t R_bit = get_bit(ins, 22);  
 

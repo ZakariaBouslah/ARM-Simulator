@@ -1,24 +1,24 @@
 /*
-Armator - simulateur de jeu d'instruction ARMv5T à but pédagogique
+Armator - simulateur de jeu d'instruction ARMv5T ï¿½ but pï¿½dagogique
 Copyright (C) 2011 Guillaume Huard
 Ce programme est libre, vous pouvez le redistribuer et/ou le modifier selon les
-termes de la Licence Publique Générale GNU publiée par la Free Software
-Foundation (version 2 ou bien toute autre version ultérieure choisie par vous).
+termes de la Licence Publique Gï¿½nï¿½rale GNU publiï¿½e par la Free Software
+Foundation (version 2 ou bien toute autre version ultï¿½rieure choisie par vous).
 
-Ce programme est distribué car potentiellement utile, mais SANS AUCUNE
+Ce programme est distribuï¿½ car potentiellement utile, mais SANS AUCUNE
 GARANTIE, ni explicite ni implicite, y compris les garanties de
-commercialisation ou d'adaptation dans un but spécifique. Reportez-vous à la
-Licence Publique Générale GNU pour plus de détails.
+commercialisation ou d'adaptation dans un but spï¿½cifique. Reportez-vous ï¿½ la
+Licence Publique Gï¿½nï¿½rale GNU pour plus de dï¿½tails.
 
-Vous devez avoir reçu une copie de la Licence Publique Générale GNU en même
-temps que ce programme ; si ce n'est pas le cas, écrivez à la Free Software
+Vous devez avoir reï¿½u une copie de la Licence Publique Gï¿½nï¿½rale GNU en mï¿½me
+temps que ce programme ; si ce n'est pas le cas, ï¿½crivez ï¿½ la Free Software
 Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307,
-États-Unis.
+ï¿½tats-Unis.
 
 Contact: Guillaume.Huard@imag.fr
-	 Bâtiment IMAG
+	 Bï¿½timent IMAG
 	 700 avenue centrale, domaine universitaire
-	 38401 Saint Martin d'Hères
+	 38401 Saint Martin d'Hï¿½res
 */
 #include "arm_branch_other.h"
 #include "arm_constants.h"
@@ -26,18 +26,62 @@ Contact: Guillaume.Huard@imag.fr
 #include <debug.h>
 #include <stdlib.h>
 
+int32_t sign_extend_30(int32_t value) {
+    // Check the sign bit of the 24-bit value
+    int32_t signBit = value & 0x00800000;
+
+    // If the sign bit is set (negative value), sign-extend by setting the upper 6 bits
+    if (signBit) {
+        return value | 0xFFC00000;
+    }
+
+    // If the sign bit is not set (positive value), simply return the original value
+    return value;
+}
 
 int arm_branch(arm_core p, uint32_t ins) {
-    return UNDEFINED_INSTRUCTION;
+    uint32_t PC = arm_read_register(p, 15);
+    int32_t offset;
+    uint32_t target_address;
+    int is_BL = get_bit(ins, 24);
+    int32_t signed_immed_24 = get_bits(ins, 23, 0);
+    offset = sign_extend_30(signed_immed_24) << 2; 
+
+    target_address = PC + offset; // vers l'adresse de la deuxiÃ¨me instruction aprÃ¨s l'instruction en cours
+
+    if (is_BL) {
+        uint32_t LR = PC-4; // LR est l'adresse de la prochaine instruction de l'instruction en cours
+        arm_write_register(p, 14, LR);
+    }
+    arm_write_register(p, 15, target_address);
+    return 0;
 }
 
 int arm_coprocessor_others_swi(arm_core p, uint32_t ins) {
-    if (get_bit(ins, 24)) {
-        return SOFTWARE_INTERRUPT;
-    }
-    return UNDEFINED_INSTRUCTION;
+    uint32_t return_address = arm_read_register(p, 15)-4; 
+    arm_write_register(p, 14, return_address);
+    return SOFTWARE_INTERRUPT;
 }
 
 int arm_miscellaneous(arm_core p, uint32_t ins) {
-    return UNDEFINED_INSTRUCTION;
+    // VÃ©rifier si l'instruction est MRS
+    if ((get_bits(ins, 27, 23) == 0b00010) && get_bits(ins, 21,20)==0) {
+        uint32_t Rd = get_bits(ins, 15, 12); 
+        uint32_t R_bit = get_bit(ins, 22);  
+
+        if (Rd == 15) {
+            return -1;    // Le rÃ©sultat est imprÃ©visible
+        }
+
+        uint32_t value;
+        if (R_bit) {
+            value = arm_read_spsr(p);
+        } else {
+            value = arm_read_cpsr(p);
+        }
+        arm_write_register(p, Rd, value);
+        return 0; 
+    }
+    return UNDEFINED_INSTRUCTION; 
 }
+//com

@@ -79,7 +79,7 @@ static int arm_execute_instruction(arm_core p) {
     
     int bit_24 = get_bit(ins,24);
     int bit_23 = get_bit(ins,23);
-    int bit_21 = get_bit(ins,21);
+    //int bit_21 = get_bit(ins,21);
     int bit_20 = get_bit(ins,20);
     int bit_7 = get_bit(ins,7);
     int bit_4 = get_bit(ins,4);

@@ -505,7 +505,7 @@ int instruction_stm1(arm_core p, uint32_t ins){
 }
 
 int arm_load_store_multiple(arm_core p, uint32_t ins) {
-    int bit_15 = get_bit(ins,15);
+    //int bit_15 = get_bit(ins,15);
 
     if(bitL(ins) && !bitB(ins)){
         instruction_ldm1(p,ins);

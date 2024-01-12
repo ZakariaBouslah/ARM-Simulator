@@ -364,12 +364,13 @@ int arm_load_store(arm_core p, uint32_t ins) {
 //----------ADDRESSING MODE 3------------------------------------------
     
     else{
+address = calculate_address_mode3(p, ins);
         //INSTRUCTIONS STRH
         if(!bitL(ins)){
             if(Rd_num == 15){
                 return UNDEFINED_INSTRUCTION; //UNPREDICTABLE
             }
-            address = calculate_address_mode3(p, ins);
+            
             uint16_t val = get_bits(arm_read_register(p, Rd_num), 15, 0);
             arm_write_half(p, address, val);
             return 0;
@@ -504,7 +505,7 @@ int instruction_stm1(arm_core p, uint32_t ins){
 }
 
 int arm_load_store_multiple(arm_core p, uint32_t ins) {
-    int bit_15 = get_bit(ins,15);
+    //int bit_15 = get_bit(ins,15);
 
     if(bitL(ins) && !bitB(ins)){
         instruction_ldm1(p,ins);

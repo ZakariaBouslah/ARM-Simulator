@@ -405,7 +405,7 @@ int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
 	/*shifter_operand = immed_8 Rotate_Right (rotate_imm * 2)
 	if rotate_imm == 0 then
 	shifter_carry_out = C flag
-	else /* rotate_imm != 0 
+	else  rotate_imm != 0 
 	shifter_carry_out = shifter_operand[31] (page A5-6)*/
 	uint32_t  shifter_operand = (immed_8 >> (rotate_imm * 2)) | (immed_8 << (32 - rotate_imm * 2));
 	uint8_t shifter_carry_out = 0;
@@ -485,7 +485,7 @@ int arm_data_processing_immediate_msr(arm_core p, uint32_t ins) {
 			if (get_bit(Rd_value,31)==1){cpsr_val = set_bit(cpsr_val,31); } else{cpsr_val = clr_bit(cpsr_val,31);}
 
 			/*Z FLAG = 1 if Rd==0 */
-			if (Rd_value ==0) {cpsr_val = set_bit(cpsr_val,30);} else{cpsr_val =   cpsr_val = clr_bit(cpsr_val,30);}
+			if (Rd_value ==0) {cpsr_val = set_bit(cpsr_val,30);} else{cpsr_val = clr_bit(cpsr_val,30);}
 
 			/*C Flag = NOT BorrowFrom(Rn - shifter_operand)*/	
 			if (BorrowFrom(Rn_value,shifter_operand)){cpsr_val = clr_bit(cpsr_val,29);}else{cpsr_val = set_bit(cpsr_val,29);}

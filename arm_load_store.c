@@ -364,12 +364,13 @@ int arm_load_store(arm_core p, uint32_t ins) {
 //----------ADDRESSING MODE 3------------------------------------------
     
     else{
+address = calculate_address_mode3(p, ins);
         //INSTRUCTIONS STRH
         if(!bitL(ins)){
             if(Rd_num == 15){
                 return UNDEFINED_INSTRUCTION; //UNPREDICTABLE
             }
-            address = calculate_address_mode3(p, ins);
+            
             uint16_t val = get_bits(arm_read_register(p, Rd_num), 15, 0);
             arm_write_half(p, address, val);
             return 0;
